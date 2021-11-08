@@ -1,0 +1,440 @@
+---
+title: "KNN From Scratch"
+author: "Kevin Patyk"
+date: "11/5/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = 'center')
+```
+
+# Introduction
+
+The idea behind the kNN algorithm is very simple: I save the training data table and when new data arrives, I find the k closest neighbors (observations), and I make the prediction based on the observations that are close to the new one. After all, you would expect that observations close to the new observation will have similar target values.
+
+As you can see, here we see a big difference with respect to most supervised algorithms and that is that kNN is a non-parametric algorithm. In other words, while for most algorithms you need to find some parameters (such as beta in linear and logistic regression or W in neural nets), in the case of kNN you don’t have to find any value. Thus, kNN algorithm is not trained.
+
+Moreover, the key to the kNN algorithm that we code program in R is based on three key aspects that we must know:
+
+* Know the different distance measures that exist, how they work and when to use each of the measures.
+* Understand how to choose the number of k neighbors to observe.
+* Know how the kNN algorithm makes predictions.
+
+-----
+
+# Distance measurements
+
+Within the kNN algorithm, the most used distance measures are: Euclidean distance, Minkowski distance, Manhattan distance, Cosine distance and Jaccard distance. You can use other distances, but these are the most common ones.
+
+## Euclidean distance
+
+The Euclidean distance is based on the Pythagoras theorem, according to which, the hypotenuse squared is equal to the sum of the sides squared.
+
+This formula will work regardless of the number of variables there are and can be used to find the distance in a straight line between two points. 
+
+Euclidean distance is the straight line distance between 2 data points in a plane.
+
+So, since the Euclidean distance is one of the possible distance measures that the kNN algorithm can use, let’s code the Euclidean distance in R.
+
+The formula used is: 
+
+$$ d(p,q) = \sqrt{\Sigma_{i = 1}^{n}(q_i-p_i)^2 }$$
+```{r}
+euclidean_distance <- function(a, b){
+  # We check that they have the same number of observations
+  if(length(a) == length(b)){
+    sqrt(sum((a - b)^2))  
+  } else{
+    stop('Vectors must be of the same length')
+  }
+}
+
+euclidean_distance(1:10, 11:20)
+```
+
+## Manhattan distance 
+
+The Manhattan distance does not measure the direct distance. Instead, it considers the distance to be the sum of the sides (considering the Pythagoras theorem).
+
+Manhattan Distance is preferred over the Euclidean distance metric as the dimension of the data increases.
+
+The formula used is: 
+
+$$ d(p,q) = \Sigma_{i = 1}^{n}|q_i-p_i|$$
+
+```{r}
+manhattan_distance <- function(a, b){
+    if(length(a) == length(b)){
+    sum(abs(b - a))  
+  } else{
+    stop('Vectors must be of the same length')
+  }
+}
+
+manhattan_distance(1:10, 11:20)
+```
+
+## Cosine similarity
+
+The cosine similarity measures the angle between two vectors, so that we know whether or not they point in the same direction. 
+
+Cosine similarity is the cosine of the angle between two n-dimensional vectors in an n-dimensional space.
+
+The cosine similarity formula is calculated with the following formula:
+
+$$ similary = cos(\theta) = \frac {\Sigma_{i = 1}^{n} A_iB_i} {\sqrt{\Sigma_{i = 1}^{n} A_i^2} {\sqrt{\Sigma_{i = 1}^{n} B_i^2}}} $$
+
+However, in our case, we do not want to measure the similarity, but rather the distance. The cosine similarity will be 1 when the angle between two vectors is 0, that is, they point in the same direction. In this case, the distance should be 0. Therefore, to obtain the distance based on the similarity of the cosine, we simply have to subtract the similarity from 1.
+
+```{r}
+cosine_similarity <- function(a, b){
+  if(length(a) == length(b)){
+    numerator <- sum(a*b, na.rm = T)
+    denominator <- sqrt(sum(a^2, na.rm = T)) * sqrt(sum(b^2, na.rm = T)) 
+    result <- numerator/denominator
+    
+    return(1 - result)
+  } else{
+    stop('Vectors must be of the same length')
+  }
+}
+
+cosine_similarity(1:10, 11:20)
+```
+
+## Jaccard coefficient 
+
+Jaccard’s coefficient measures the degree of similarity between two vectors, giving a value of 1 when all values are equal and 0 when values are different.
+
+The Jaccard coefficient can be calculated as follows:
+
+$$ J(A,B) = \frac{|A \cap B|} {|A \cup B|} $$
+As a reminder, the union of two sets A and B (U) is defined as the set of elements that belong to either A or B, or possibly both. 
+$$ \cup $$
+The intersection of two sets A and B is defined as the set of elements that belong to both A and B.
+$$ \cap $$
+```{r}
+jaccard <- function(a, b){
+  if(length(a) == length(b)){
+    intersection <- length(intersect(a,b)) #this will get the length of the elements that belong both to a and b
+    union <- length(a) + length(b) - intersection #this will get the union, which belong in a or b or possibly both - this will be the length(a) + length(b) - length of elements that belong to both a & b (intersection)
+    return(intersection/union)
+  } else{
+    stop("Vectors must be of the same length")
+  }
+}
+
+jaccard(1:10, 11:20)
+```
+
+## Minkowski distance
+
+The Minkowski distance is a type of distance that generalizes the Euclidean and Manhattan distances. Basically, the Minkowski distance is a distance that requires a p parameter, when p = 2 we get the Euclidean distance, and if p = 1 we get the Manhattan distance.
+
+The formula is:
+
+$$Minkowski(A,B) = (\Sigma_{i = 1}^{n} |A_i - B_i|^p)^\frac{1}{p} $$
+
+```{r}
+minkowski_distance <- function(a, b, p){
+  if(p <= 0){
+    stop("p must be higher than 0")
+  }
+   if(length(a) == length(b)){
+    (sum(abs(a - b)^p))^(1/p)
+} else {
+    stop('Vectors must be of the same length')
+  }
+}
+
+minkowski_distance(1:10, 11:20, 1)
+minkowski_distance(1:10, 11:20, 2)
+```
+
+As we can see, the results for p = 1 we get the Manhattan distance and with p = 2 they we get the Euclidean distance.
+
+## When to use each type of distance
+
+With this you already know the main distance measurements that are usually used in the kNN algorithm. However, when should we use each of them?
+
+Like everything in the data world, the distance metric we use will depend on the type of data we have, the dimensions we have and the business objective.
+
+For example, if we want to find the closest route that a taxi must take or the distances on a chessboard, it seems clear that our own data leads us to use the Manhattan function since it is the only distance that makes sense.
+
+Likewise, when we have a high level of dimensionality, that is, when there are many variables the Manhattan distance works better than the Euclidean distance. And, with high dimensionality, everything is far from everything, so another option is usually to look at the direction of the vectors, that is, use the cosine distance.
+
+On the other hand, using the Jaccard distance or the cosine distance will depend on the duplication of the data. If data duplication does not matter, then the Jaccard distance will be used, otherwise, the cosine distance will be used. These distances are typically for data involving words (NLP) and recommender systems.
+
+Now that we know the different distance measures and when to use each of them, we are going to use these distances to find the k closest neighbors and, from there, see how the prediction is made.
+
+-----
+
+# Find the k nearest neighbors 
+
+We are going to code a function that, given a measure of distance and a series of observations, returns the k neighbors of an observation that we pass to it.
+
+Steps for finding KNN:
+
+* Determine the value of k = number of nearest neighbors to be considered.
+
+* Calculate the distance (Euclidean is the most popular implementation to work by hand) between the query instance and all the training samples.
+
+* Sort the distance and determine nearest neighbors based on the k-th minimum distance.
+
+* Gather the category/class labels of the k nearest neighbors.
+
+* Use simple majority of the category of nearest neighbors as the prediction label of the query instance
+
+Before making the function, let's break it down step by step. We will use the built in `iris` dataset as an example. 
+```{r}
+#creating the training and new observation from the iris dataset, where x is the training data and y is the new sample 
+x <- iris[1:(nrow(iris)-1),]
+head(x)
+
+y <- iris[nrow(iris),]
+y
+
+#first, we will apply our distance function over our training data with the first argument being the observation we want to classify:
+dist <- apply(X = x[, 1:4], MARGIN = 1, FUN = euclidean_distance, y[, 1:4])
+head(dist)
+
+#so, based on our euclidean distance function, this is what will happen:
+step1 <- (x[1, 1:4] - y[ ,1:4]) #calculating the differences between each value in the training column and the new observation
+step1
+
+step2 <- (x[1, 1:4] - y[ ,1:4])^2 #squaring the differences between each value in the training column and the new observation 
+step2
+
+step3 <- sum((x[1, 1:4] - y[ ,1:4])^2) #summing the squared differences between each value in the training column and the new observation 
+step3
+
+step4 <- sqrt(sum((x[1, 1:4] - y[ ,1:4])^2)) #taking the square root to obtain the distance 
+step4
+```
+
+By hand the above calculation would look something like this (where `y` is the sample we want to classify and `x` is the training data): 
+
+*NOTE:* The columns in the `iris` dataset are: `Sepal.Length`, `Sepal.Width`, `Petal.Length` `Petal.Width`, `Species`. However, we will not be using species since it is the outcome of interest. Additionally, even if it was not our outcome of interest, it would have to be transformed into a numeric variable first. 
+
+$$ \small distance = \sqrt {(Sep.Leng_y - Sep.Leng_x)^2 + (Sepal.Wid_y - Sepal.Wid_x)^2 + (Pet.Leng_y - Pet.Leng_x)^2 + (Pet.Width_y - Pet.Width_x)^2} $$
+Moving on to selecting the k nearest distances.
+```{r}
+#then, we will sort the distance and select only the lowest observations based on the amount of neighbors we want (for this example, we use 5:
+distances <- sort(dist)[1:5]
+distances
+
+#finally, we will get the indices of the closest neighbors
+neighbor_ind <- which(dist %in% sort(dist)[1:5]) 
+neighbor_ind
+```
+
+Now, putting it all together in a function with some error control. 
+```{r}
+#this function as input will take x, the training data, obs, which is the observations we want to predict, k, the number of nieghbors, FUN, the distance function we want to use, and p, which is null by default 
+nearest_neighbors <- function(x, obs, k, FUN, p = NULL){
+
+  # Check the number of variables is the same - the number of columns must be the same for each data frame that we enter for both x, which is the training data, and obs, which is the new data point 
+  if(ncol(x) != ncol(obs)){
+    stop('Data must have the same number of variables')
+  }
+
+  # Calculate distance, considering p for Minkowski - if p is NULL, which is the default, it will calculate the distance without considering p; if p contains a value, it will calculate the distance taking p into consideration 
+  if(is.null(p)){
+    dist <- apply(x, 1, FUN, obs) #this will apply our distance function over the training values (x) and our new value we want to classify (obs); it will apply our distance function over the column using (obs) as the first argument (for a) - this will be done over all the columns this is why they must be on the same length 
+  } else{
+    dist <- apply(x, 1, FUN, obs, p) #this will do the same thing as the above apply function, but we will take p into consideration
+  }
+
+  # Find closest neighbors
+  distances <- sort(dist)[1:k] #this will sort the distances from lowest to highest; we will subset it by 1:k, where k is the amount of neighbors; this will make it so that we select the lowest distances
+  neighbor_ind <- which(dist %in% sort(dist)[1:k]) # finally, we will get the indices of the closest neighbors
+
+  if(length(neighbor_ind)!= k){ #if several variables have an equal distances, we will use k = the length of how many indices there are
+    warning(
+      paste('Several variables with equal distance. Used k:', length(neighbor_ind))
+    )
+  }
+  #now, we will return a list with the indices and their distances in the form of a list
+  ret <- list(neighbor_ind, distances)
+  return(ret)
+}
+```
+
+Now, we can check that our `nearest_neighbors` function works.
+```{r}
+x <- iris[1:(nrow(iris)-1),]
+obs <- iris[nrow(iris),]
+
+ind <- nearest_neighbors(x[, 1:4], obs[, 1:4], 4, euclidean_distance)[[1]]
+x[ind, 1:4]
+```
+
+As we can see, we already know how to find the k nearest neighbors. Now, we will move onto prediction.
+
+-----
+
+# Prediction in KNN
+
+The kNN algorithm is used for classification and regression problems. Obviously, how the prediction is done will depend on what kind of problem it is.
+
+## Prediction in a classification problem 
+
+In the case of classification problems, the kNN algorithm is based on finding the mode of the variable, as if it were a voting system. Following our case, if most of our neighbors are Iris Setosa, the algorithm’s prediction will be Iris Setosa.
+
+However, this has a problem, and that is, what happens if there are two (or more) classes with the same number of votes? In that case, there would be no predominant value, so this method would not work.
+
+In those cases, the algorithm increases the k by 1, that is, it adds a new neighbor that will (probably) tiebreak. If it doesn’t, we would continue increasing k by 1, until we get a tiebreak.
+
+Considering this, let’s create the prediction function for the case of categorical data:
+```{r}
+#this function will take the the data frame with only the indices of the closest neighbors for the target observation that will be classified (x); y will be the categorical outcome variable of interest 
+knn_prediction <- function(x, y){
+  
+  #first we will make a table displaying the category of each index with counts 
+  groups <- table(x[, y])
+  #now, we will select the name of the category in the table with highest value
+  pred <- groups[groups == max(groups)]
+  return(pred)
+}
+
+knn_prediction(x[ind,], 'Species')
+```
+
+*NOTE:* The reason we use `groups[groups == max(groups)]` (1) instead of `names(groups)[which.max(groups)]` (2) is because (2) returns the first value with the most entries; if there is a tie, it will not be shown. On the other hand, (1) returns all of the values with the most entries; if there is a tie, it will display all of them. 
+
+We still haven’t fixed the problem that there are two classes with the same number of neighbors. We will fix this later when mounting the algorithm.
+
+## Prediction in a regression problem 
+
+In the case of the kNN algorithm for regressions, we can choose two approaches:
+
+* Make the prediction based on the mean, as is done in the case of decision trees.
+* Make the prediction based on a weighted average that has takem into account the distance of the rest of the observations with respect to target, in such a way that those observations that are closer have more weight than those that are further away.
+
+There are different ways to calculate the weighted average, although the most common is to weight based on the inverse of distances.
+
+So, let’s modify the prediction function above so that:
+
+* Take into account the type of variable on which the prediction is made.
+* In case of a regression, accept that the prediction is made by both a simple mean and a weighted mean.
+
+```{r}
+#this function will take inputs x, the training data, y, the outcome variable of interest, weights, which is null by default 
+knn_prediction <- function(x, y, weights = NULL){
+
+  #now, we will specify that, if the outcome variable (y) is either a character or a factor, we will use the prediction method for categorical outcomes 
+  if(is.factor(x[, y]) | is.character(x[, y])){
+    groups <- table(x[, y]) #first, make a table displaying the category of each index with counts 
+    pred <- names(groups[groups == max(groups)]) #now, we will select the name of the category in the table with highest value
+  } 
+  #then, we will specify that, if the outcome variable (y) is numeric, we will use the prediction method for numerical outcomes
+  if(is.numeric(x[, y])){
+    # if x is numeric and the weights argument is not null, calculate weighted prediction
+    if(!is.null(weights)){
+      w <- 1/weights/ sum(weights)
+      pred <- weighted.mean(x[, y], w)
+
+    # if x is numeric and the weights argument is null, calculate the standard prediction 
+    }else{
+      pred = mean(x[, y])
+    }
+
+  }
+  # If no value for prediction, then class is not correct and will post an error 
+  if(try(class(x[, y])) == 'try-error'){
+    stop('Y should be factor or numeric')
+  }
+  return(pred)
+}
+```
+
+Now, let’s try to make some predictions to make sure that the function works. 
+```{r}
+knn_prediction(x = x[ind,], y = 'Species')
+```
+
+-----
+
+# Finishing coding the kNN algorithm from 0 in R
+
+In order to finish programming our kNN algorithm in `R`, we must take into account how this algorithm is used. In general, the prediction is not usually made on one observation, but on several at the same time. Therefore, we will have to allow our algorithm to receive several observations on which to predict and to return a vector of predictions.
+
+Also, we are going to program another question that we have previously left in the pipeline, and that is when the prediction is made in a classification problem, there is no single class with more votes than the others, but there is a tie between two or more classes.
+
+As we have the algorithm programmed, solving that is very simple if we apply recursion. So when you get a prediction you just have to check the number of response classes. If it is higher than one, for that same observation you call the algorithm again, but with a higher k.
+
+```{r}
+#now we will make the full knn function, where x_fit is the training data, x_pred has the observations we want to predict, func is the distance function, which by default is euclidean, weighted_pred determines whether or not we use weights for a numeric outcome, and p is for minkowski distance, which is null by default 
+knn <- function(x_fit, x_pred, y, k, 
+               func = euclidean_distance, weighted_pred = F, p = NULL, df = T){ 
+
+  # creating a storage vector for the predictions
+  predictions <- c()
+  
+  #now, we will find the column index of the outcome variable (y); so, if the outcome is in column number 5, this will be 5
+  y_ind <- which(colnames(x_pred) == y)
+
+  #for i in the amount of rows in the data we want to classify - since we will be having multiple observations we want to classify, rather than just 1, we need to run a for loop over all the rows in the dataset we want to predict
+  for(i in 1:nrow(x_pred)){
+    #we will run the nearest_neighbors function we created earlier, where we are using the values x_fit (without the outcome column) and the values of x_pred (without the outcome column) to find the indices of the nearest neighbors 
+    neighbors <- nearest_neighbors(x_fit[, -y_ind], 
+                                  x_pred[i, -y_ind], k, FUN = func)
+    #if the weighted_pred argument = T, we will run the knn_prediction function with x = training data only with the indices of the nearest neighbors, y = the outcome variable of interest, and the distances
+    if(weighted_pred){
+      pred <- knn_prediction(x_fit[neighbors[[1]], ], y, neighbors[[2]])
+    } else{ #if we are not using the weighted argument, we will just make classifications using x = training data only with indices of the nearest neighbors, y = the outcome variable of interest 
+      pred <- knn_prediction(x_fit[neighbors[[1]], ], y)
+    }
+
+    #if the length of the prediction is greater than 1, meaning there is a tie, then we will run the algorithm over again with k = k + 1 to break the tie
+    if(length(pred) > 1){
+      pred <- knn(x_fit, x_pred[i,], y, k = k + 1, 
+                 func = func, weighted_pred = weighted_pred, p == p)
+    }
+    #fill the storage vector we made earlier with our predictions; the length of our storage vector/predictions will be as long as there are rows in the data we want to classify 
+    predictions[i] <- pred
+
+  }
+    #creating a new column in the data frame with observations we want to classify for the predictions
+    x_pred$Predicted <- predictions 
+    #renaming the outcome column to Actual just to be clear 
+    colnames(x_pred)[y_ind] <- "Actual"
+  #now we will make it so that the function can return either a data frame or just a vector of classifications, by default it will print a data frame  
+  if(df){
+    return(x_pred)
+  } else {
+  return(predictions)
+  }
+
+}
+```
+
+Now, to test the full algorithm on the `iris` data.
+```{r}
+#setting the seed
+set.seed(1234)
+
+#setting how many observations we want to classify
+n_fit <- 20
+
+#random sampling to get the rows of the observations that we want to classify 
+train_ind <- sample(1:nrow(iris), n_fit)
+
+x_fit <- iris[-train_ind,]
+x_pred <- iris[train_ind,]
+
+predictions <- knn(x_fit, x_pred, 'Species', k = 4, df = T)
+predictions
+```
+
+-----
+
+# End of document
+
+-----
+
+```{r}
+sessionInfo()
+```
+
