@@ -1,6 +1,6 @@
 # Independent-Projects
 
-This is  repository for my independent projects, i.e. tasks I have an up to do outside of work and school.
+This is  repository for my independent projects, i.e. tasks I have completed or am working on outside of work or school and just based of off personal interest. 
 
 Some things in this repository include:
 
