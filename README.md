@@ -5,7 +5,7 @@ This is  repository for my independent projects, i.e. tasks I have completed or 
 Some things in this repository include:
 
 * Coding algorithms from scratch
-* Competitive coding practice 
+* Coding practice problems from CodeChef  
 * Individual data science projects 
 
 
