@@ -220,3 +220,266 @@ smallfac(len_t = 5, n = c(4,1,2,5,3))
 ```
 
 # 9 - Turbo Sort
+
+Given the list of numbers, you are to sort them in non decreasing order.
+
+* Input: t – the amount of numbers in list, then t lines follow [t <= 10^6]. Each line contains one integer: 0 <= n <= 10^6
+
+* Output: Output given numbers in non decreasing order.
+```{r}
+turbosort <- function(len_t, n){
+  stopifnot(len_t <= 10^6, n >= 0, n <= 10^6)
+  stor <- list()[1:len_t]
+  sorted <- sort(n)
+  for(i in 1:len_t){
+    stor[[i]] <- sorted[i]
+  }
+  return(stor)
+}
+
+turbosort(len_t = 6, c(6,3,2,4,5,1))
+```
+
+# 10 - Reverse the Number
+
+Given an Integer N, write a program to reverse it.
+
+* Input: The first line contains an integer T, total number of testcases. Then follow T lines, each line contains an integer N.
+
+* Output: For each test case, display the reverse of the given number N in a new line.
+
+* Constraints: 1 ≤ T ≤ 1000, 1 ≤ N ≤ 1000000
+```{r}
+reverseint <- function(len_t, n){
+  stopifnot(len_t >= 1,len_t <= 1000, n >= 0, n <= 1000000)
+  stor <- list()[1:len_t]
+  for(i in 1:len_t){
+    split <- as.numeric(strsplit(x = as.character(n[i]), split = "")[[1]])
+    stor[[i]] <- as.numeric(paste(rev(split), collapse = ""))
+  }
+  return(stor)
+}
+
+reverseint(len_t = 3, n = c(123,123,123))
+```
+
+# 11 - Finding Square Roots
+
+Assume that you happen to hear the above words and you want to give a try in finding the square root of any given integer using in-built functions. So here's your chance.
+
+* Input: The first line of the input contains an integer T, the number of test cases. T lines follow. Each line contains an integer N whose square root need to be computed.
+
+* Output: For each line of the input, output the square root of the input integer, rounded down to the nearest integer, in a new line.
+
+* Constraints: 1<=T<=20, 1<=N<=10000
+```{r}
+fsq <- function(len_t, n){
+  stopifnot(len_t >= 1, len_t <= 20, n >= 1, n <= 10000)
+  stor <- list()
+  for(i in 1:len_t){
+    stor[[i]] <- floor(sqrt(n[i]))
+  }
+  return(stor)
+}
+
+fsq(len_t = 4, n = c(3, 10, 5, 10000))
+```
+
+# 12 - Second Largest
+
+Three numbers A, B and C are the inputs. Write a program to find second largest among them.
+
+* Input: The first line contains an integer T, the total number of test cases. Then T lines follow, each line contains three integers A, B and C.
+
+* Output: For  each test case, display the second largest among A, B and C, in a new line.
+
+* Constraints: 1 ≤ T ≤ 1000, 1 ≤ A,B,C ≤ 1000000
+```{r}
+seclarg <- function(len_t, a, b, c){
+  stopifnot(len_t >= 1, len_t <= 1000, a >= 1, b >= 1, c >= 1, a <= 1000000, b <= 1000000, c <= 1000000)
+  stor <- list()
+  for(i in 1:len_t){
+    vec <- sort(c(a[i], b[i], c[i]))
+    stor[[i]] <- vec[which.max(vec) - 1]
+  }
+  return(stor)
+}
+
+seclarg(len_t = 3, a = c(5,5,5), b = c(1,1,1), c = c(100, 100, 100))
+```
+
+# 13 - The Lead Game
+
+* Input: The first line of the input will contain a single integer N (N ≤ 10000) indicating the number of rounds in the game. Lines 2,3,...,N+1 describe the scores of the two players in the N rounds. Line i+1 contains two integer Si and Ti, the scores of the Player 1 and 2 respectively, in round i. You may assume that 1 ≤ Si ≤ 1000 and 1 ≤ Ti ≤ 1000.
+
+* Output: Your output must consist of a single line containing two integers W and L, where W is 1 or 2 and indicates the winner and L is the maximum lead attained by the winner.
+```{r}
+leadgame <- function(n, p1, p2){
+  cumscorep1 <- cumsum(p1)
+  cumscorep2 <- cumsum(p2)
+  diffp1 <- cumscorep1 - cumscorep2
+  diffp2 <- cumscorep2 - cumscorep1
+  if(max(diffp1) > max(diffp2)){
+  return(c(1, max(diffp1)))  
+  } else {
+  return(c(2, max(diffp2)))
+  }
+}
+
+leadgame(n = 5, p1 = c(140, 89, 90, 112, 88), p2 = c(82, 133, 110, 106, 90))
+```
+
+# 14 - Helping Chef
+
+Write a program, which takes an integer N and if the number is less than 10 then display "Thanks for helping Chef!" otherwise print "-1".
+
+* Input: The first line contains an integer T, total number of test cases. Then follow T lines, each line contains an integer N.
+
+* Output: For each test case, output the given string or -1 depending on conditions, in a new line.
+
+* Constraints: 1 ≤ T ≤ 1000, -20 ≤ N ≤ 20
+```{r}
+helpchef <- function(len_t, n){
+  stopifnot(len_t >= 1, len_t <= 1000, n >= -20, n <= 20)
+  for(i in 1:len_t){
+  if(n[i] < 10){
+    print("Thanks for helping Chef!")
+  } else{
+    print("-1")
+    }
+  }
+}
+
+helpchef(len_t = 3, n = c(-10, 19, 5))
+```
+
+# 15 - Chef and Operators
+
+Chef has just started Programming, he is in first year of Engineering. Chef is reading about Relational Operators.
+Relational Operators are operators which check relationship between two values. Given two numerical values A and B you need to help chef in finding the relationship between them that is,
+
+* First one is greater than second or,
+* First one is less than second or,
+* First and second one are equal.
+
+* Input: First line contains an integer T, which denotes the number of testcases. Each of the T lines contain two integers A and B
+
+* Output: For each line of input produce one line of output. This line contains any one of the relational operators
+'<' , '>' , '='.
+
+* Constraints: 1 ≤ T ≤ 10000, 1 ≤ A, B ≤ 1000000001
+```{r}
+chefop <- function(len_t, a, b){
+  stopifnot(len_t >= 1, len_t <= 10000, a >= 1, a <= 1000000001, b >= 1, b <= 1000000001)
+  for(i in 1:len_t){
+    if(a[i] > b[i]){
+      print(">")
+    } else if(a[i] < b[i]){
+      print("<")
+    } else{
+      print("=")
+    }
+  }
+}
+
+chefop(len_t = 3, a = c(10,20,10), b = c(20,10,10))
+```
+
+# 16 - Packaging Cupcakes
+
+Now that Chef has finished baking and frosting his cupcakes, it's time to package them. Chef has N cupcakes, and needs to decide how many cupcakes to place in each package. Each package must contain the same number of cupcakes. Chef will choose an integer A between 1 and N, inclusive, and place exactly A cupcakes into each package. Chef makes as many packages as possible. Chef then gets to eat the remaining cupcakes. Chef enjoys eating cupcakes very much. Help Chef choose the package size A that will let him eat as many cupcakes as possible.
+
+* Input: Input begins with an integer T, the number of test cases. Each test case consists of a single integer N, the number of cupcakes.
+
+* Output: For each test case, output the package size that will maximize the number of leftover cupcakes. If multiple package sizes will result in the same number of leftover cupcakes, print the largest such size.
+
+* Constraints: 1 ≤ T ≤ 1000, 2 ≤ N ≤ 100000000 (10^8)
+```{r}
+packcup <- function(len_t, n){
+  stopifnot(len_t >= 1, len_t <= 1000, n >= 2, n <= 10^8)
+  for(i in 1:len_t){
+    print(n[i] %/% 2+1)
+  }
+}
+
+#%/% is integer division, the same as floor(n/m) - integer division discards the remainder; %% is the remainder  
+
+packcup(len_t = 2, n = c(2,5))
+```
+
+# 17 - Valid Triangles
+
+Write a program to check whether a triangle is valid or not, when the three angles of the triangle are the inputs. A triangle is valid if the sum of all the three angles is equal to 180 degrees.
+
+* Input: The first line contains an integer T, the total number of test cases. Then T lines follow, each line contains three angles A, B and C, of the triangle separated by space.
+
+* Output: For each test case, display 'YES' if the triangle is valid, and 'NO', if it is not, in a new line.
+
+* Constraints: 1 ≤ T ≤ 1000, 1 ≤ A,B,C ≤ 180
+```{r}
+validtri <- function(len_t, a, b, c){
+  stopifnot(len_t >= 1, len_t <= 1000, a >= 1, a <= 180, b >= 1, b <= 180, c >= 1, c <= 180)
+  for(i in 1:len_t){
+  if(sum(a[i] + b[i] + c[i]) > 180){
+    print("NO")
+  } else {
+    print("Yes")
+    }
+  }
+}
+
+validtri(len_t = 3, a = c(40, 45, 180), b = c(40, 45, 1), c = c(100, 90, 1))
+```
+
+# 18 - Chef and Remissness 
+
+The office where the Chef works, has two guards who count how many times a person enters into the office building. Though the duty of a guard is 24 hours in a day, sometimes they fall asleep during their duty and do not track the entry of a person in the office building. But one good thing is that they never fall asleep at the same time. At least one of them remains awake and counts who enters into the office.
+
+
+Now the boss of Chef wants to calculate how many times the Chef has entered into the building. The boss asked to the guard and they gave him two integers A and B, the count of first guard and second guard respectively.
+
+
+Help the boss to count the minimum and maximum number of times Chef could have entered into the office building.
+
+* Input: The first line of the input contains an integer T denoting the number of test cases. The description of the T test cases follows.
+
+Each test case consists of a line containing two space separated integers A and B.
+
+* Output: For each test case, output a single line containing two space separated integers, the minimum and maximum number of times Chef could have entered into the office building.
+
+* Constraints: 1 ≤ T ≤ 100, 0 ≤ A, B ≤ 1000000
+```{r}
+chefremiss <- function(len_t, a, b){
+  stopifnot(len_t >= 1, len_t <= 100, a >= 0, b >= 0, a <= 1000000, b <= 1000000)
+  for(i in 1:len_t){
+    print(c(a[i], a[i]+ b[i]))
+  }
+}
+
+chefremiss(len_t = 3, a = c(19, 14, 17), b = c(17, 14, 10))
+```
+
+# 19 - Decrement or Increment 
+
+Write a program to obtain a number N and increment its value by 1 if the number is divisible by 4 otherwise decrement its value by 1.
+
+* Input: First line will contain a number N.
+
+* Output: Output a single line, the new value of the number.
+
+* Constraints:0 ≤ N ≤ 1000
+```{r}
+decorin <- function(n){
+  stopifnot(n >= 0, n <= 1000)
+  if(n %% 4 == 0){
+    print(n + 1)
+  } else {
+    print(n - 1)
+  }
+}
+
+decorin(n = 5)
+```
+
+# 20 - Mahasena 
+
