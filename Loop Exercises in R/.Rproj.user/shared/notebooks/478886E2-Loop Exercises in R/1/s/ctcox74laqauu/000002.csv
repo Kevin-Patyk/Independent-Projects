@@ -1,0 +1,42 @@
+"0","while (TRUE) {
+  cat(
+    ""I am thinking of a number between 1 and 10."",
+    ""\nTake a guess and press enter twice!""
+  )
+  x <- scan()[1]
+  if (x == 5) {
+    cat(""Right!"")
+    break
+  }
+  cat(""Wrong\n"")
+}
+"
+"1","I am thinking of a number between 1 and 10."
+"1"," "
+"1","
+Take a guess and press enter twice!"
+"0","3"
+"0",""
+"2","Read 1 item
+"
+"1","Wrong
+"
+"1","I am thinking of a number between 1 and 10."
+"1"," "
+"1","
+Take a guess and press enter twice!"
+"0","2"
+"0",""
+"2","Read 1 item
+"
+"1","Wrong
+"
+"1","I am thinking of a number between 1 and 10."
+"1"," "
+"1","
+Take a guess and press enter twice!"
+"0","5"
+"0",""
+"2","Read 1 item
+"
+"1","Right!"
