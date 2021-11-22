@@ -1,5 +1,5 @@
 ---
-title: "Competitive Coding Practice Problems"
+title: "Coding Practice Problems"
 author: "Kevin Patyk"
 date: "11/8/2021"
 output: html_document
@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Competitive Coding Practice Problems from CodeChef
+# Coding Practice Problems from CodeChef
 
 -----
 
@@ -751,4 +751,236 @@ totalexp <- function(len_t, q, p){
 totalexp(len_t = 3, q = c(100, 10, 1200), p = c(120, 20, 20))
 ```
 
-# 28 - Fit Squares in Triangle
+# 28 - Gross Salary 
+
+In a company an emplopyee is paid as under: If his basic salary is less than Rs. 1500, then HRA = 10% of base salary and DA = 90% of basic salary. If his salary is either equal to or above Rs. 1500, then HRA = Rs. 500 and DA = 98% of basic salary. If the Employee's salary is input, write a program to find his gross salary.
+
+Note: Gross Salary = Basic Salary + HRA + DA
+
+* Input: The first line contains an integer T, total number of test cases. Then follow T lines, each line contains an integer salary.
+
+* Output: For each test case, output the gross salary of the employee in a new line. Your answer will be considered correct if the absolute error is less than 10-2.
+
+* Constraints: 1 ≤ T ≤ 1000, 1 ≤ salary ≤ 100000
+```{r}
+grosssal <- function(len_t, sal){
+  stopifnot( len_t >= 1, len_t <= 1000, sal >= 1, sal <= 100000)
+  stor <- list()
+  for(i in 1:len_t){
+    if(sal[i] < 1500){
+      stor[[i]] <- sal[i] + (.10*sal[i]) + (.90*sal[i])
+    } else{
+      stor[[i]] <- sal[i] + 500 + (.98*sal[i])
+    }
+  }
+  return(stor)
+}
+
+grosssal(len_t = 3, sal = c(1203, 10042, 1312))
+```
+
+# 29 - Grade the Steel
+
+A certain type of steel is graded according to the following conditions.
+
+Hardness of the steel must be greater than 50
+Carbon content of the steel must be less than 0.7
+Tensile strength must be greater than 5600
+The grades awarded are as follows:
+
+* Grade is 10 if all three conditions are met
+* Grade is 9 if conditions (1) and (2) are met
+* Grade is 8 if conditions (2) and (3) are met
+* Grade is 7 if conditions (1) and (3) are met
+* Grade is 6 if only one condition is met
+* Grade is 5 if none of the three conditions are met
+
+Write a program to display the grade of the steel, based on the values of hardness, carbon content and tensile strength of the steel, given by the user.
+
+* Input: The first line contains an integer T, total number of test cases. Then follow T lines, each line contains three numbers hardness, carbon content and tensile strength of the steel.
+
+* Output: For each test case, print Grade of the steel depending on conditions, in a new line.
+
+* Constraints: 1 ≤ T ≤ 1000, 0 ≤ hardness, carbon content, tensile strength ≤ 10000
+```{r}
+steelgrade <- function(len_t, h, c, s){
+  stopifnot(len_t >= 1, len_t <= 1000, h >= 0, c >= 0, s >= 0, h <= 10000, c <= 10000, s <= 10000)
+  stor <- list()
+  for(i in 1:len_t){
+    if(h[i] > 50 & c[i] < 0.7 & s[i] > 5600){
+    stor[[i]] <- "Grade 10"
+    } else if (h[i] > 50 & c[i] < 0.7){
+    stor[[i]] <- "Grade 9"
+    } else if (c[i] < 0.7 & s[i] > 5600){
+    stor[[i]] <- "Grade 8"
+    } else if(h[i] > 50 & s[i] > 5600){
+    stor[[i]] <- "Grade 7"
+    } else if(h[i] > 50 | c[i] < 0.7 | s[i] > 5600){
+    stor[[i]] <- "Grade 6"
+    } else{
+    stor[[i]] <- "Grade 5"
+  }
+  }
+  return(stor)
+}
+
+steelgrade(len_t = 3, h = c(53, 45, 0), c = c(0, 0.6, 0), s = c(5602, 4500, 0))
+```
+
+# 30 - Two vs Ten
+
+Chef Two and Chef Ten are playing a game with a number X. In one turn, they can multiply X by 2. The goal of the game is to make X divisible by 10.
+
+Help the Chefs find the smallest number of turns necessary to win the game (it may be possible to win in zero turns) or determine that it is impossible.
+
+* Input: The first line of the input contains a single integer T denoting the number of test cases. The description of T test cases follows. The first and only line of each test case contains a single integer denoting the initial value of X.
+
+* Output: For each test case, print a single line containing one integer — the minimum required number of turns or −1 if there is no way to win the game.
+
+* Constraints: 1 ≤ T ≤ 1000, 0 ≤ X ≤ 109
+```{r}
+twovten <- function(len_t, x){
+  stopifnot(len_t >= 1, len_t <= 1000, x >= 0, x <= 109)
+  stor <- list()
+  for(i in 1:len_t){
+    if(x[i] %% 10 == 0){
+      stor[[i]] <- 0
+    } else if(x[i] %% 5 != 0){
+      stor[[i]] <- -1
+    } else {
+      stor[[i]] <- 1 
+    }
+  }
+  return(stor)
+}
+
+twovten(len_t = 3, x = c(10, 25, 1))
+```
+
+# 31 - Rectangle
+
+You are given four integers a, b, c and d. Determine if there's a rectangle such that the lengths of its sides are a, b, c and d (in any order).
+
+* Input: The first line of the input contains a single integer T denoting the number of test cases. The description of T test cases follows. The first and only line of each test case contains four space-separated integers a, b, c and d.
+
+* Output: For each test case, print a single line containing one string "YES" or "NO".
+
+* Constraints: 1 ≤ T ≤ 1,000, 1 ≤ a, b, c, d ≤ 10,000
+```{r}
+rectangle <- function(len_t, a, b, c, d){
+  stopifnot(len_t >= 1, len_t <= 1000, a >= 1, b >= 1, c >= 1, d > 1, a <= 10000, b <= 10000, c <= 10000, d <= 10000)
+  stor <- list()
+  for(i in 1:len_t){
+    vec <- sort(c(a[i], b[i], c[i], d[i]))
+    if(vec[1] == vec[2] & vec[3] == vec[4]){
+      stor[[i]] <- "YES"
+    } else{
+      stor[[i]] <- "NO"
+    }
+  }
+  return(stor)
+}
+
+rectangle(len_t = 3, a = c(1,3,1), b = c(1,2,2), c = c(2,2,2), d = c(2,3,2))
+```
+
+
+# 32 - Is it a VOWEL or CONSONANT
+
+Write a program to take a character (C) as input and check whether the given character is a vowel or a consonant.
+
+NOTE: Vowels are 'A', 'E', 'I', 'O', 'U'. Rest all alphabets are called consonants.
+
+* Input: First line will contain the character C
+
+* Output: Print "Vowel" if the given character is a vowel, otherwise print "Consonant".
+
+* Constraints: C will be an upper case English  alphabet
+```{r}
+vowcon <- function(C){
+  stor <- list()
+  for(i in 1:length(C)){
+    if(C[i] != toupper(C[i])){
+      stop("Input must be an upper case.")
+    } else{
+      if(C[i] == "A" | C[i] == "E" | C[i] == "I" | C[i] == "O" | C[i] == "U"){
+        stor[[i]] <- "Vowel"
+      } else{
+        stor[[i]] <- "Consonant"
+      }
+    }
+  }
+  return(stor)
+}
+
+vowcon(C = c("Z", "A", "C", "I"))
+```
+
+
+# 33 - Chef and Fruits 
+
+Today is Chef's birthday. His mom has surprised him with truly fruity gifts: 2 fruit baskets. The first basket contains N apples, and the second one contains M oranges. Chef likes apples and oranges very much but he likes them equally, and therefore, wants to have the minimum possible difference between the number of apples and oranges he has. To do so, he can purchase 1 apple or 1 orange by paying exactly 1 gold coin (that's some expensive fruit, eh?). Chef can purchase fruits at most K times (as he has only K gold coins in his pocket) to make the difference the minimum possible.
+
+Our little Chef is busy in celebrating his birthday to the fullest, and therefore, he has handed this job to his best friend — you. Can you help him by finding the minimum possible difference he can achieve between the number of apples and orange he owns?
+
+* Input: The first line of input contains a single integer T denoting the number of test cases. The first and only line of each test case contains 3 space separated integers — N, M and K — denoting the number of apples, number of oranges, and number of gold coins our little Chef has
+
+* Output: For each test case, output the minimum possible difference between the number of apples and oranges that Chef can achieve.
+
+* Constraints: 1 ≤ T ≤ 100, 1 ≤ N, M, K ≤ 100
+```{r}
+mindiff <- function(len_t, n, m, k){
+  stopifnot(len_t >= 1, len_t <= 100, n >= 1, m >= 1, k >= 1, n <= 100, m <= 100, k <= 100)
+  stor <- list()
+  for(i in 1:len_t){
+  maxi <- max(c(n[i], m[i]))
+  mini <- min(c(n[i], m[i]))
+  stor[[i]] <- maxi - min(c(mini + k[i], maxi))
+  }
+  return(stor)
+}
+
+mindiff(len_t = 3, n = c(3,5,3), m = c(4,2,4), k = c(1,1,3))
+```
+
+# 34 - Area OR Perimeter
+
+Write a program to obtain length (L) and breadth (B) of a rectangle and check whether its area is greater or perimeter is greater or both are equal.
+
+* Input: Write a program to obtain length (L) and breadth (B) of a rectangle and check whether its area is greater or perimeter is greater or both are equal. Second line will contain the breadth (B) of the rectangle.
+
+* Output: Output 2 lines. In the first line print "Area" if area is greater otherwise print "Peri" and if they are equal print "Eq".(Without quotes). In the second line print the calculated area or perimeter (whichever is greater or anyone if it is equal).
+
+* Constraints: 1 ≤ L ≤ 1000, 1 ≤ B ≤ 1000
+```{r}
+areaperi <- function(L, B){
+  stopifnot(L >= 1, L <= 1000, B >= 1, B <= 1000)
+  stor <- character()
+  res <- numeric()
+  for(i in 1:length(L)){
+    area <- (L[i]*B[i])
+    perimeter <- 2*(L[i]+B[i])
+    if(area > perimeter){
+      stor[i] <- "Area"
+      res[i] <- area
+    } else {
+      stor[i] <- "perimeter"
+      res[i] <- perimeter
+    } 
+  }
+  return(data.frame(stor, res))
+}
+
+areaperi(L = c(1,3,5), B = c(2,4,6))
+```
+
+-----
+
+# End of document
+
+-----
+
+```{r}
+sessionInfo()
+```
+
