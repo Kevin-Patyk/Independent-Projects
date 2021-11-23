@@ -1,0 +1,325 @@
+---
+title: "Gradient Boost From Scratch"
+author: "Kevin Patyk"
+date: "11/22/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Installing required packages and importing data
+
+Loading libraries.
+```{r message=FALSE, warning=FALSE}
+library(xgboost) #will not use, but this is a good package for boosting
+library(tree)
+library(caret)
+library(tidyverse)
+library(randomForest)
+```
+
+Importing data and defining the predictors.
+```{r}
+#importing data 
+df <- mtcars
+
+#getting names of predictors 
+x_vars <- names(df[, 2:ncol(df)])
+
+#converting the names into a formula for later
+x_vars <- paste(x_vars, collapse = " + ")
+x_vars
+
+#saving the name of the outcome variable
+y_var <- colnames(df)[1]
+y_var
+
+#creating the formula for later use - we will use this one but it can be done this way quickly to make formulas
+formu <- as.formula(paste(y_var, "~", x_vars))
+formu
+```
+
+-----
+
+# Coding the algorithm
+
+For boosting, we need some sort of base prediction. For this base prediction, we will use the mean of the `mpg` variable, which is the outcome variable. 
+```{r}
+#creating the initial prediction, which is the average of the outcome variable 
+df$pred_1 <- mean(df$mpg)
+```
+
+The gradient boosting algorithm can be used for predicting not only continuous target variables (as a regressor) but also for categorical target variables (as a classifier). When it is used as a regressor, the loss function is Mean Square Error (MSE) and when it is used as a classifier the loss function is Log loss.
+
+Since we are working with a continuous outcome in this example, we will define the loss function using MSE. The objective of the algorithm here is to minimize the MSE. 
+
+This is the loss function:
+```{r}
+# this is our loss function
+# y - the target variable 
+# yhat - the fitted values
+loss <- function(y, yhat) return(mean(1/2*(y-yhat)^2))
+```
+
+Our objective is to find the minimum of this loss function, which is an adaption of the mean squared error. The algorithm exploits the fact that in a minimum there is no slope in our loss function. The gradient of our function, which is the negative partial derivative with respect to `yhat`, describes this slope. So we can actually reformulate our objective to searching a gradient of zero or close to zero to ultimately fulfill our goal of minimizing the loss.
+```{r}
+# the derivative of our loss function is the gradient
+# y - the target variable 
+# yhat - the fitted values
+gradient <- function(y, yhat) {return(y - yhat)}
+```
+
+## Round 1
+
+Calculating the residuals for the current data using the prediction (average of `mpg` that we made earlier):
+```{r}
+df$resd_1 <- gradient(y = df$mpg, yhat = df$pred_1)
+```
+
+Now, our dataset has the initial predictions and the pseudo residuals that were calculated using the observed values and initial prediction (average of `mpg`).
+```{r}
+head(df)
+```
+
+This will be the first "round" of gradient boosting. From this point, we will start predicting the residual column from our predictors. 
+
+## Round 2 
+
+In this second round, we will predict the initial residuals using the predictor variables of interest. We will do this using trees and the `tree` package. 
+```{r}
+mdl <- tree(formula = resd_1 ~ cyl + disp + hp + drat + wt + qsec + vs + am + gear + carb, data = df)
+summary(mdl)
+```
+
+Now, we will update our previous data frame with the new predictions.
+```{r}
+df$pred_2 <- predict(mdl, df)
+df$pred_2
+```
+
+Now, we have the first prediction, which it the mean of `mpg`, and the second prediction, which was made by making a regression tree where the features predicted the residuals. As we can see, the answers are currently not that great. 
+
+Now, we are going to calculate the residuals using the predictions (`df$pred_2`) we have just made using the regression tree. Keep in mind, however, that this is sequential and the previous predictions need to be taken into account. Thus, the prediction should be (`df$pred_1 + df$pred_2`).
+
+Prior adding the predictions together, though, we need to introduce the learning rate, which will help prevent overfitting and gradually help build towards an accurate prediction. We do not want to use all of the information from the previous prediction (`df$pred_2`). So, the predictions from `df$pred_2` will be multiplied by a learning rate. The learning rate is the shrinkage you do at every step you are making and it scales from 0 to 1. Thus, we will do something like:
+```{r}
+#storing the learning rate
+LR <- 0.1 
+
+#example
+df$pred_1 + (LR * df$pred_2)
+```
+
+Now, we have to update our residuals based on the previous 2 predictions.
+```{r}
+df$resd_2 <- (df$mpg - (df$pred_1 + (LR * df$pred_2)))
+df$resd_2
+```
+
+## Round 3
+
+Now, we have our second set of residuals. Now, we will predict the residuals (`df$resd_2`) we obtained in the second round using the predictors of interest. Again, using the `tree` package to make a regression tree.
+```{r}
+mdl_2 <- tree(formula = resd_2 ~ cyl + disp + hp + drat + wt + qsec + vs + am + gear + carb, data = df)
+summary(mdl_2)
+```
+
+Now, using the model we made to predict `resd_2`, we will make new predictions.
+```{r}
+df$pred_3 <- predict(mdl_2, df)
+df$pred_3
+```
+
+Then, our third residuals will be the actual values for `mpg` minus the combination of predictions for the current round (3) and the previous rounds (1 & 2).
+```{r}
+df$resd_3 <- (df$mpg - (df$pred_1 + (LR * df$pred_2) + (LR * df$pred_3)))
+df$resd_3
+```
+
+So, this is the idea behind gradient boosting:
+
+* First, make an initial prediction using the average of the outcome variable.
+* Then, calculate the residuals using the initial prediction.
+* Then, fit a tree predicting the residuals by the predictor variables.
+* Then, use the tree to make new predictions.
+* Finally, calculate the residuals by subtracting the sum of the previous predictions (with learning rates included) from the observed values.
+* This process stops until some stopping criterion is reached. 
+
+----
+
+# Using a `for` loop 
+
+We used the step-by-step procedure to understand the basic idea behind boosting. Now, we will be using a `for` loop to iterate through these steps rather than typing it all manually. 
+```{r}
+#storing the data frame
+df <- mtcars
+
+#defining the x variables
+x_vars <- names(df[, 2:ncol(df)])
+x_vars <- paste(x_vars, collapse = " + ")
+
+#gradient function
+gradient <- function(y, yhat) {return(y - yhat)}
+
+#let us define how many rounds we are going to do; in this example, we will do 10 
+nrounds <- 10
+
+#learning rate
+LR <- 0.1
+
+#now, we are going to make a data frame column that hold the prediction for each round 
+prediction <- NA
+df <- cbind(df[1], prediction, df[2:ncol(df)])
+
+#round 1 
+df$pred_1 <- mean(df$mpg)
+df$prediction <-df$pred_1
+df$resd_1 <- gradient(df$mpg, df$prediction)
+
+#rmse using the caret package
+rmse <- RMSE(df$mpg, df$prediction)
+result <- data.frame("Round" = c(1), "RMSE" = c(rmse))
+
+#now, making the for loop
+for(i in 2:nrounds){
+  
+  mdl <- eval(parse(text = paste0("tree(resd_", i-1, "~", x_vars, ", data=df)")))
+  df[[paste0("pred_", i)]] <- predict(mdl, df)
+  
+  df$prediction <- df$prediction + (LR * df[[paste0("pred_", i)]])
+  df[[paste0("resd_", i)]] <- gradient(y = df$mpg, yhat = df$prediction)
+  
+  rmse <- RMSE(df$mpg, df$prediction)
+  result <- rbind(result, list("Round" = i, "RMSE" = rmse))
+                  
+}
+
+result
+```
+
+As we can see, the RMSE decreases with every round, which is what we expect and what are we hoping to see. As a reminder, RMSE: 
+
+Root Mean Square Error (RMSE) is the standard deviation of the residuals (prediction errors). Residuals are a measure of how far from the regression line data points are; RMSE is a measure of how spread out these residuals are. In other words, it tells you how concentrated the data is around the line of best fit. 
+
+*NOTE*: This is not how gradient boosting is actually in practice. If we wanted to perform boosting, we can use the package `xgboost`. This has been kept simple just go generate understanding. 
+
+-----
+
+# Making it into a function 
+
+Now, we will take the code from the previous section and turn it into a function. This function will not be adaptable to other datasets, but will make it easier to make examples for plots later. 
+```{r}
+gradboost <- function(data, nrounds, LR){
+  #defining the data
+  df <- data
+  
+  #defining the x variables
+  x_vars <- names(df[, 2:ncol(df)])
+  x_vars <- paste(x_vars, collapse = " + ")
+  
+  #defining the number of rounds 
+  nrounds <- nrounds
+  
+  #defining the learning rate
+  LR <- LR
+  
+  #creating the gradient function
+  gradient <- function(y, yhat) {return(y - yhat)}
+  
+  #now, we are going to make a data frame column that hold the prediction for each round 
+  prediction <- NA
+  df <- cbind(df[1], prediction, df[2:ncol(df)])
+  
+  #performing round 1 using the average of the outcome (mpg)
+  df$pred_1 <- mean(df$mpg)
+  df$prediction <- df$pred_1
+  df$resd_1 <- gradient(df$mpg, df$prediction)
+  
+  #initializing the rmse/results 
+  #rmse using the caret package
+  rmse <- RMSE(df$mpg, df$prediction)
+  result <- data.frame("Round" = c(1), "RMSE" = c(rmse))
+  
+  #finally, the for loop 
+  for(i in 2:nrounds){
+  
+  mdl <- eval(parse(text = paste0("tree(resd_", i-1, "~", x_vars, ", data=df)")))
+  df[[paste0("pred_", i)]] <- predict(mdl, df)
+  
+  df$prediction <- df$prediction + (LR * df[[paste0("pred_", i)]])
+  df[[paste0("resd_", i)]] <- gradient(y = df$mpg, yhat = df$prediction)
+  
+  rmse <- RMSE(df$mpg, df$prediction)
+  result <- rbind(result, list("Round" = i, "RMSE" = rmse))
+                  
+  }
+  return(result)
+}
+```
+
+Now, to make sure the function works properly.
+```{r}
+gradboost(data = mtcars, nrounds = 10, LR = 0.1)
+```
+
+The function does work properly. 
+
+-----
+
+# Comparing methods
+
+Now, we will compare methods just as an example to see what the results look like.
+```{r}
+#basic tree model 
+tree_mdl <- eval(parse(text = paste0("tree(mpg", "~", x_vars, ", data=df)")))
+prediction <- predict(tree_mdl, df)
+tree_rmse <- RMSE(df$mpg, prediction)
+
+#random forest
+rf_mdl <- eval(parse(text = paste0("randomForest(mpg", "~", x_vars, ", data=df)")))
+prediction_rf <- predict(rf_mdl, df)
+rf_rmse <- RMSE(df$mpg, prediction_rf)
+```
+
+Now, we will use `ggplot2` to visualize these RMSE scores.
+```{r}
+ggplot() + 
+  geom_line(data = result, aes(x = Round, y = RMSE)) +
+  geom_hline(yintercept = tree_rmse, color = "blue", linetype = "dashed") +
+  geom_hline(yintercept = rf_rmse, color = "red", linetype = "dashed")
+```
+
+Although it looks like our gradient boosting method did not do so well, keep in mind that we only set it to 10 rounds, this is a very basic implementation of the algorithm, and we are not using training/testing sets. If we increased the number of rounds and change up the learning rate, the RMSE would continue to drop, eventually becoming equal to or lower than the RMSE values provided by the basic decision tree and the random forest. 
+
+Below is an example graph with 20 rounds rather than 10: 
+```{r}
+result_2 <- gradboost(data = mtcars, nrounds = 20, LR = 0.1)
+
+ggplot() + 
+  geom_line(data = result_2, aes(x = Round, y = RMSE)) +
+  geom_hline(yintercept = tree_rmse, color = "blue", linetype = "dashed") +
+  geom_hline(yintercept = rf_rmse, color = "red", linetype = "dashed")
+```
+
+And with 30 rounds:
+```{r}
+result_3 <- gradboost(data = mtcars, nrounds = 30, LR = 0.1)
+
+ggplot() + 
+  geom_line(data = result_3, aes(x = Round, y = RMSE)) +
+  geom_hline(yintercept = tree_rmse, color = "blue", linetype = "dashed") +
+  geom_hline(yintercept = rf_rmse, color = "red", linetype = "dashed")
+```
+
+-----
+
+# End of document
+
+-----
+
+```{r}
+sessionInfo()
+```
+
