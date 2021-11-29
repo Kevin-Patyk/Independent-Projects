@@ -1,0 +1,129 @@
+---
+title: "Principal Components Regression"
+author: "Kevin Patyk"
+date: "11/26/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+In statistics, principal component regression (PCR) is a regression analysis technique that is based on principal component analysis (PCA). More specifically, PCR is used for estimating the unknown regression coefficients in a standard linear regression model.
+
+In PCR, instead of regressing the dependent variable on the explanatory variables directly, the principal components of the explanatory variables are used as regressors. One typically uses only a subset of all the principal components for regression, making PCR a kind of regularized procedure and also a type of shrinkage estimator.
+
+Often the principal components with higher variances (the ones based on eigenvectors corresponding to the higher eigenvalues of the sample variance-covariance matrix of the explanatory variables) are selected as regressors. However, for the purpose of predicting the outcome, the principal components with low variances may also be important.
+
+One major use of PCR lies in overcoming the multicollinearity problem which arises when two or more of the explanatory variables are close to being collinear. PCR can aptly deal with such situations by excluding some of the low-variance principal components in the regression step. In addition, by usually regressing on only a subset of all the principal components, PCR can result in dimension reduction through substantially lowering the effective number of parameters characterizing the underlying model. This can be particularly useful in settings with high-dimensional covariates. Also, through appropriate selection of the principal components to be used for regression, PCR can lead to efficient prediction of the outcome based on the assumed model.
+
+The PCR method may be broadly divided into three major steps:
+
+* Perform PCA on the observed data matrix for the explanatory variables to obtain the principal components, and then (usually) select a subset, based on some appropriate criteria, of the principal components for further use.
+
+* Now regress the observed vector of outcomes on the selected principal components as covariates, using ordinary least squares regression (linear regression) to get a vector of estimated regression coefficients (with dimension equal to the number of selected principal components).
+
+* Now transform this vector back to the scale of the actual covariates, using the selected PCA loadings (the eigenvectors corresponding to the selected principal components) to get the final PCR estimator (with dimension equal to the total number of covariates) for estimating the regression coefficients characterizing the original model.
+
+-----
+
+# Analysis
+
+**Step 1: Load Necessary Packages**
+```{r warning=FALSE, message=FALSE}
+#load pls package
+library(pls)
+```
+
+**Step 2: Fit PCR Model**
+
+For this example, we’ll use the built-in R dataset called mtcars which contains data about various types of cars:
+```{r}
+#view first six rows of mtcars dataset
+head(mtcars)
+```
+
+For this example we’ll fit a principal components regression (PCR) model using `hp` as the response variable and the following variables as the predictor variables:
+
+* `mpg`
+* `disp`
+* `drat`
+* `wt`
+* `qsec`
+
+The following code shows how to fit the PCR model to this data. Note the following arguments:
+
+* `scale=TRUE`: This tells `R` that each of the predictor variables should be scaled to have a mean of 0 and a standard deviation of 1. This ensures that no predictor variable is overly influential in the model if it happens to be measured in different units.
+
+* `validation=”CV”`: This tells `R` to use k-fold cross-validation to evaluate the performance of the model. Note that this uses k=10 folds by default. Also note that you can specify “LOOCV” instead to perform leave-one-out cross-validation.
+```{r}
+#make this example reproducible
+set.seed(1)
+
+#fit PCR model
+model <- pcr(hp ~ mpg + disp + drat + wt + qsec, data = mtcars, scale = TRUE, validation = "CV")
+```
+
+**Step 3: Choose the Number of Principal Components**
+
+Once we’ve fit the model, we need to determine the number of principal components worth keeping.
+
+The way to do so is by looking at the test root mean squared error (test RMSE) calculated by the k-fold cross-validation:
+```{r}
+#view summary of model fitting
+summary(model)
+```
+
+There are two tables of interest in the output:
+
+## 1. VALIDATION: RMSEP
+
+This table tells us the test RMSE calculated by the k-fold cross validation. We can see the following:
+
+* If we only use the intercept term in the model, the test RMSE is 69.66.
+* If we add in the first principal component, the test RMSE drops to 44.56.
+* If we add in the second principal component, the test RMSE drops to 35.64.
+* We can see that adding additional principal components actually leads to an increase in test RMSE. Thus, it appears that it would be optimal to only use two principal components in the final model.
+
+## 2. TRAINING: % variance explained
+
+This table tells us the percentage of the variance in the response variable explained by the principal components. We can see the following:
+
+* By using just the first principal component, we can explain 69.83% of the variation in the response variable.
+* By adding in the second principal component, we can explain 89.35% of the variation in the response variable.
+* Note that we’ll always be able to explain more variance by using more principal components, but we can see that adding in more than two principal components doesn’t actually increase the percentage of explained variance by much.
+
+We can also visualize the test RMSE (along with the test MSE and R-squared) based on the number of principal components by using the `validationplot()` function.
+```{r}
+#visualize cross-validation plots
+validationplot(model)
+validationplot(model, val.type="MSEP")
+validationplot(model, val.type="R2")
+```
+
+In each plot we can see that the model fit improves by adding in two principal components, yet it tends to get worse when we add more principal components.
+
+Thus, the optimal model includes just the first two principal components.
+
+**Step 4: Use the Final Model to Make Predictions**
+
+We can use the final PCR model with two principal components to make predictions on new observations.
+
+The following code shows how to split the original dataset into a training and testing set and use the PCR model with two principal components to make predictions on the testing set.
+```{r}
+#define training and testing sets
+train <- mtcars[1:25, c("hp", "mpg", "disp", "drat", "wt", "qsec")]
+y_test <- mtcars[26:nrow(mtcars), c("hp")]
+test <- mtcars[26:nrow(mtcars), c("mpg", "disp", "drat", "wt", "qsec")]
+    
+#use model to make predictions on a test set
+model <- pcr(hp ~ mpg + disp + drat + wt + qsec, data = train, scale = TRUE, validation = "CV")
+pcr_pred <- predict(model, test, ncomp = 2)
+
+#calculate RMSE
+sqrt(mean((pcr_pred - y_test)^2))
+```
+
+We can see that the test RMSE turns out to be 56.86549. This is the average deviation between the predicted value for `hp` and the observed value for `hp` for the observations in the testing set.
