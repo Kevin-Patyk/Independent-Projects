@@ -1,5 +1,5 @@
 ---
-title: "Gradient Boost From Scratch"
+title: "Gradient Boost from Scratch"
 author: "Kevin Patyk"
 date: "11/22/2021"
 output: html_document

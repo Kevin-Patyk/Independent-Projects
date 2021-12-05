@@ -9,6 +9,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+**Note: This is not my original work. I followed this [guide](https://www.statology.org/principal-components-regression-in-r/).**
+
 # Introduction
 
 In statistics, principal component regression (PCR) is a regression analysis technique that is based on principal component analysis (PCA). More specifically, PCR is used for estimating the unknown regression coefficients in a standard linear regression model.

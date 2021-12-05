@@ -1,5 +1,5 @@
 ---
-title: "KNN From Scratch"
+title: "KNN from Scratch"
 author: "Kevin Patyk"
 date: "11/5/2021"
 output: html_document
@@ -8,6 +8,8 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, fig.align = 'center')
 ```
+
+**Note: This is not my original work. I followed this [guide](https://anderfernandez.com/en/blog/code-knn-in-r/).**
 
 # Introduction
 
