@@ -1,0 +1,580 @@
+---
+title: "Linear Regression from Scratch"
+author: "Kevin Patyk"
+date: "12/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Simple linear regression
+
+Linear regression is a method for predicting `y` from `x`. In our case, `y` is the dependent variable, and `x` is the independent variable. We want to predict the value of `y` for a given value of `x`. Now, if the data were perfectly linear, we could simply calculate the slope intercept form of the line in terms y = mx+ b. To predict y, we would just plug in the given values of x and b. In the real world, our data will not be perfectly linear. It will likely be in the form of a cluster of data points on a scatterplot. From that scatterplot, we would like to determine, what is the line of best fit that describes the linear qualities of the data, and how well does the line fit the cluster of points?
+
+In order to find the line of best fit, we need to construct the linear regression equation. In simple linear regression, we will only have the intercept and a slope coefficient. 
+
+The formula for the estimate of the slope is: 
+
+<p align="center">
+![](/Users/onef0/Desktop/Pictures/OLS1.jpg){height=350px}
+</p>
+
+The formula for the estimate of the intercept is:
+
+<p align="center">
+![](/Users/onef0/Desktop/Pictures/OLS2.jpg){height=350px}
+</p>
+
+First, we will prepare data so that we can do our calculations. We will be using the `iris` data which is with in `R` by default. For simplicity, we will be using `Petal.Length` as our `y` (outcome) `Petal.Width` as our `x` (predictor).
+```{r}
+#outcome
+y <- iris$Petal.Length
+
+#predictor
+x <- iris$Petal.Width
+```
+
+Now, to calculate the slope using the formula above.
+```{r}
+(b1_est <- sum((y - mean(y))*(x - mean(x))) / sum((x - mean(x))^2))
+```
+
+Then, calculating the intercept using the above formula. 
+```{r}
+(b0_est <- mean(y) - (b1_est * mean(x)))
+```
+
+Now, to double check if this is correct using the `lm()` function.
+```{r}
+mod_test <- lm(y ~ x)
+summary(mod_test)
+```
+
+
+According to the `lm()` function, the above estimates for the intercept and slope are correct. So, our regression equation for the line of best fit is:
+
+$$ \hat{y_i} = 1.08 + 2.23 \cdot x_i$$
+
+However, we still have some work to do as we need to calculate the standard errors, t-values, p-values, and the R2.
+
+First, we will calculate the standard errors. If we want to calculate the standard errors, we first need to calculate the sum of squared errors (SSE), which tells us the sum of squared differences between the observed values and fitted values. -	The sum of squared errors is the variability of the observed values around the best-fitting line.
+
+The formula for SSE is: 
+
+$$ SSE = \Sigma(y_i - \hat{y_i})^2$$
+
+Calculating the SSE.
+```{r}
+(SSE <- sum((y - predict(mod_test))^2))
+```
+
+The SSE is 33.84
+
+Now, double-checking to see if the SSE matches the output from the `anova()` function.
+```{r}
+anova(mod_test)
+```
+
+The SSE from the `anova()` function is 33.84, so our calculation was correct. 
+
+Now, from the SSE we will calculate the mean square error (MSE), which is the estimated standard deviation of the error. The MSE is calculated using the formula below, where the SSE is divided by the n (the number of observations) minus the appropriate degrees of freedom, which is 2, since we are estimating an intercept and slope. 
+
+$$ MSE = \frac{SSE}{n-2}$$
+
+Calculating the MSE.
+```{r}
+(n <- length(y))
+(MSE <- SSE/(n - 2))
+```
+
+The MSE is 0.23.
+
+Now, double-checking to see if the MSE matches the output from the `anova()` function.
+```{r}
+anova(mod_test)
+```
+
+The SSE from the `anova()` function is 0.23, so our calculation was correct. 
+
+Now that we have calculated the MSE, we can calculate the root mean square error (RMSE), which is just the square root of the MSE:
+
+$$ RMSE = \sqrt{MSE} $$
+
+Calculating the RMSE.
+```{r}
+(RMSE <- sqrt(MSE))
+```
+
+Now that we have calculated the RMSE, we can use it to calculate the standard error of the slope, which represents the average distance that your observed values deviate from the regression line. The standard error of the slope is calculated using the formula below:
+
+$$ S_{b1} = \frac{RMSE}{\sqrt{\Sigma(x_i-\bar{x})^2}} $$
+
+Calculating the standard error of the slope. 
+```{r}
+(se_b1 <- RMSE/sqrt(sum((x - mean(x))^2)))
+```
+
+The standard error of the slope is 0.051.
+
+Now, double-checking to see if the standard error of the slope matches the output from the `summary()` function.
+```{r}
+summary(mod_test)
+```
+
+The standard error of the slope is 0.051, so our calculation was correct. 
+
+Now, we will calculate the standard error of the intercept, which allows us to test whether or not the estimated intercept is statistically significant from a specified (hypothesized) value, normally 0. The formula to calculate the standard error of intercept is:
+
+$$ s_{b1} = RMSE\sqrt{\frac{1}{n}+\cfrac{\bar{x}^2}{\Sigma (x_i-\bar{x})^2}}$$ 
+
+Now, to calculate the standard error of the intercept.
+```{r}
+(se_b0 <- RMSE*sqrt((1/n) + ((mean(x)^2)/sum((x - mean(x))^2))))
+```
+
+The standard error of the intercept is 0.073.
+
+Now, double-checking to see if the standard error of the intercept matches the output from the `summary()` function.
+```{r}
+summary(mod_test)
+```
+
+The standard error of the slope is 0.073, so our calculation was correct. 
+
+Now that we have calculated the standard errors, we can conduct hypothesis tests to determine whether or not our estimates (intercept and slope) differ significantly from 0. In order to calculate the t-values associated with our estimates, we need to divide the t-values by their respective standard errors.
+```{r}
+(tb1 <- b1_est/se_b1)
+(tb0 <- b0_est/se_b0)
+```
+
+The t-value for our slope is 43.39 and the t-value for our intercept is 14.85. 
+
+Double checking to make sure if the t-values match the output from `summary()`.
+```{r}
+summary(mod_test)
+```
+
+The t-values are 14.85 and 43.9, so this our calculation was correct.
+
+Now, in order to conduct a hypothesis test, we typically have to find the t-critical values from the Student's t Distribution. For this, we need our degrees of freedom, which is n - 2, the direction of the test, which is two-tailed for simple linear regression, and the significance level, which will be 0.05. However, this is a bit cumbersome and we can calculate the p-value directly using the code below.
+```{r}
+(pb1 <- 2 * pt(abs(tb1), df = (n - 2), lower.tail = FALSE))
+(pb0 <- 2 * pt(abs(tb0), df = (n - 2), lower.tail = FALSE))
+```
+
+Now, we will double check our p-values from the output generated by `summary()`.
+```{r}
+#comparing the intercept p-values
+identical(round(pb0, digits = 40), round(summary(mod_test)$coefficients[1,4], 40))
+
+#comparing the slope p-values
+identical(round(pb1, digits = 90), round(summary(mod_test)$coefficients[2,4], 90))
+```
+
+The p-values are very, very small, so the `round()` function was used to compare the results. And, according to the output, the p-values that we calculated were correct. 
+
+Now, that we have calculated the p-values, we will calculate r2, which tells us the percentage of variance explained in `y` by `x`. In the case of simple linear regression, r2 is simply the correlation between `x` (predictor) and `y` (outcome). 
+
+The correlation coefficient can be calculated by hand, but this seems unnecessary, so the `cor()` function will be used.
+```{r}
+cor(x,y)^2
+```
+
+The r2 value is 0.93. 
+
+Now, to double check the to make sure the value is the same as `summary()`.
+```{r}
+summary(mod_test)
+```
+
+The r2 matches, so our calculation was correct.
+
+Now, we will create a function to perform simple linear regression using the calculations used above.
+```{r}
+simple_ols <- function(x, y, plot = FALSE){
+  #since this is linear regression, the outcome has to be numeric
+  if(!is.numeric(y)){
+    stop("y must be numeric")
+  }
+  #the predictor should be numeric; if it is categorical, it should be converted to a dummy variable
+  if(!is.numeric(x)){
+    stop("x must be numeric or a dummy coded categorical variable")
+  }
+  #the variables should be the same length
+  if(length(x) != length(y)){
+    stop("variable lengths differ: both variables should have the same length")
+  }
+  
+  #calculating the slope (b1)
+  b1_est <- round(sum((y - mean(y))*(x - mean(x))) / sum((x - mean(x))^2), digits = 5)
+  #calculating the intercept (b0)
+  b0_est <- round(mean(y) - (b1_est * mean(x)), digits = 5)
+  
+  #calculating the predicted values using the regression equation
+  pred_values <- numeric()
+  for(i in 1:length(y)){
+    pred_values[i] <- round(b0_est + b1_est*x[i], digits = 6)
+  }
+  
+  #calculating the SSE
+  SSE <- round(sum((y - pred_values)^2), digits = 2)
+  #calculating the MSE
+  MSE <- round(SSE/(n - 2), digits = 2)
+  #calculating the RMSE 
+  RMSE <- round(sqrt(MSE), digits = 2)
+  
+  #calculating the SE of the slope (b1)
+  se_b1 <- round(RMSE/sqrt(sum((x - mean(x))^2)), digits = 5)
+  #calculating the SE of the intercept (b0)
+  se_b0 <- round(RMSE*sqrt((1/n) + ((mean(x)^2)/sum((x - mean(x))^2))), digits = 5)
+  
+  #calculating the t value for the slope
+  tb1 <- round(b1_est/se_b1, digits = 2)
+  #calculating the t value for the intercept 
+  tb0 <- round(b0_est/se_b0, digits = 2)
+  
+  #calculating the p value for the slope
+  pb1 <- 2 * pt(abs(tb1), df = (n - 2), lower.tail = FALSE)
+  #calculating the p value for the intercept
+  pb0 <- 2 * pt(abs(tb0), df = (n - 2), lower.tail = FALSE)
+  #since some p values may be really small, will do some control for b1
+  if(pb1 <= 0.001){
+    pb1 <- "<0.001"
+  } 
+  #since some p values may be really small, will do some control for b0
+  if(pb0 <= 0.001){
+    pb0 <- "<0.001"
+  }
+  
+  #calculating r2
+  r2 <- round(cor(x,y)^2, digits = 4)
+  
+  #plotting if argument is set to true
+  if(plot == TRUE){
+    plot(x = x, y = y)
+    abline(lm(y ~ x))
+  }
+  
+  #making vector to store the output for b1
+  b1_out <- data.frame("Estimate" = b1_est, "SE" = se_b1, "T-value" = tb1, "P-value" = pb1)
+  #making vector to store the output for b1
+  b0_out <- data.frame("Estimate" = b0_est, "SE" = se_b0, "T-value" = tb0, "P-value" = pb0)
+  
+  return(list("output" = rbind("b0" = b0_out, "b1" = b1_out), "r2" = r2))
+}
+```
+
+Now, testing if the function works.
+```{r}
+simple_ols(x = x, y = y, plot = T)
+```
+
+Great, the function works and gives us the correct output!
+
+-----
+
+# Multiple linear regression 
+
+In multiple linear regression, we still have one dependent variable (`y`), but there are now multiple predictor variables (`x`). This makes the process of calculating the intercept, slopes, and associated standard errors more complicated. 
+
+For multiple linear regression linear algebra is used to create estimates for the coefficients.
+
+First, we will prepare data so that we can do our calculations. We will be using the `iris` data which is with in `R` by default. We will be using `Petal.Length` as our `y` (outcome) and `Petal.Width`, `Sepal.Width` and `Septal.Length` as our `x`'s (predictors).
+```{r}
+#outcome
+y <- iris$Petal.Length
+
+#predictor 1
+x1 <- iris$Petal.Width
+#predictor 1
+x2 <- iris$Sepal.Width
+#predictor 1
+x3 <- iris$Sepal.Length
+```
+
+First, we will make an `lm()` object and store the output for later comparisons.
+```{r}
+mod_test_2 <- lm(y ~ x1 + x2 + x3)
+summary(mod_test_2)
+```
+
+To estimate the intercept and slope coefficients, this formula must be used:
+
+$$ \begin{pmatrix}
+\hat{\beta_0}\\
+\hat{\beta_1}\\
+\hat{\beta_2}\\
+\hat{\beta_3}
+\end{pmatrix} = \hat{\beta} = (X^TX)^{-1} \cdot X \cdot y$$
+
+Here, $X^T$ denotes the transpose of $X$ and $(X^TX)^{-1}$ is the inverse of $X^TX$.
+
+First, we will create a matrix `X` which holds a column of 1s with length $n$ in the first column and then the rest of the predictor variables. We already have vector `y` with the outcome, so that can stay as is. 
+```{r}
+head(X <- as.matrix(cbind(rep(1, 150), x1, x2, x3)))
+```
+
+Now, we will solve the equation to get the estimates.
+```{r}
+(beta_estimates <- solve(t(X) %*% X) %*% t(X) %*% y)
+```
+
+Now, to check if this lines up with the coefficients of our `lm()` object. But, first let's tidy it up a bit so we can `rbind()` them together nicely and in an informative way. 
+```{r}
+#cleaning up our matrix
+beta_estimates <- as.vector(beta_estimates)
+names(beta_estimates) <- c("b0", "b1", "b2", "b3")
+
+#cleaning up the lm matrix
+lm_estimates <- as.vector(coef(mod_test_2))
+names(lm_estimates) <- c("b0", "b1", "b2", "b3")
+
+#displaying the values
+rbind(beta_estimates, lm_estimates)
+```
+
+According to the output, our calculations are correct and all of the estimates match the `lm()` output. The equation for the line of best fit is:
+
+$$ \hat{y_i} = -0.2627 + 1.4467 \cdot x_1 -0.6460 \cdot x_2 + 0.7291 \cdot x_3$$
+
+Now, we will calculate the SSE, MSE, and the RMSE. How to do this is detailed in the first section, so it will not be repeated here in that much detail.
+
+Calculating and checking the SSE.
+```{r}
+#calculating sse
+(SSE <- sum((y - predict(mod_test_2))^2))
+
+#comparing with anova() function
+anova(mod_test_2)
+```
+
+Our calculation matches the output.
+
+Calculating and checking the MSE.
+```{r}
+#setting n
+(n <- length(y))
+
+#calculating mse
+(MSE <- SSE/(n - 2))
+
+#comparing with anova() function
+anova(mod_test_2)
+```
+
+Our calculation matches the output.
+
+Calculating the RMSE.
+```{r}
+(RMSE <- sqrt(MSE))
+```
+
+Now to calculate the standard errors for the slopes. The standard error for the slopes in multiple linear regression is also calculated using linear algebra. The formula is:
+
+$$ \hat{Var}(\hat{\beta}) = \hat{\sigma}^2(X^TX)^{-1}$$
+
+Where $\hat{\sigma}^2$ is the MSE. Once we have $\hat{Var}(\hat{\beta})$, we take the square root of the diagonal to get the standard errors:
+```{r}
+(beta_se <- sqrt(diag(MSE * solve(t(X) %*% X))))
+```
+
+Now, to check if this lines up with the standard errors of our `lm()` object. But, first let's tidy it up a bit so we can `rbind()` them together nicely and in an informative way. 
+```{r}
+#cleaning up our vector
+beta_se <- as.vector(beta_se)
+names(beta_se) <- c("b0", "b1", "b2", "b3")
+
+#cleaning up the lm output
+lm_se <- as.vector(summary(mod_test_2)$coefficients[, 2]) #this will give us the standard errors associated with the coefficients 
+names(lm_se) <- c("b0", "b1", "b2", "b3")
+
+#displaying the values
+rbind(beta_se, lm_se)
+```
+
+So, the output does not match exactly. However, though the above formula for standard errors is the correct calculation for doing it by hand, apparently the `lm()` function calculates it slightly differently for efficiency and stability, so the answers slightly differ. 
+
+Now that we have the standard errors, we can calculate the t-values.
+```{r}
+#b0
+(tb0 <- beta_estimates[1] / beta_se[1])
+#b1
+(tb1 <- beta_estimates[2] / beta_se[2])
+#b2
+(tb2 <- beta_estimates[3] / beta_se[3])
+#b2
+(tb3 <- beta_estimates[4] / beta_se[4])
+```
+
+Now, to check if this lines up with the t-values of our `lm()` object. But, first let's tidy it up a bit so we can `rbind()` them together nicely and in an informative way. 
+```{r}
+#cleaning up our vector
+beta_t <- c(tb0, tb1, tb2, tb3)
+names(beta_t) <- c("b0", "b1", "b2", "b3")
+
+#cleaning up the lm output
+lm_t <- as.vector(summary(mod_test_2)$coefficients[, 3]) #this will give us the t values associated with the coefficients 
+names(lm_t) <- c("b0", "b1", "b2", "b3")
+
+#displaying the values
+rbind(beta_t, lm_t)
+```
+
+So, the t-values associated with our estimates are almost identical. The only different that occurs is due to the fact that `lm()` calculates standard errors a bit differently. 
+
+Now, we can calculate the p-values associated with our estimates.
+```{r}
+#b0
+(pb0 <- 2 * pt(abs(tb0), df = (n - 2), lower.tail = FALSE))
+#b1
+(pb1 <- 2 * pt(abs(tb1), df = (n - 2), lower.tail = FALSE))
+#b2
+(pb2 <- 2 * pt(abs(tb2), df = (n - 2), lower.tail = FALSE))
+#b3
+(pb3 <- 2 * pt(abs(tb3), df = (n - 2), lower.tail = FALSE))
+```
+
+Now, to check if this lines up with the coefficients of our `lm()` object. But, first let's tidy it up a bit so we can `rbind()` them together nicely and in an informative way.
+```{r}
+#cleaning up our vector
+beta_p <- c(pb0, pb1, pb2, pb3)
+names(beta_p) <- c("b0", "b1", "b2", "b3")
+
+#cleaning up the lm output
+lm_p <- as.vector(summary(mod_test_2)$coefficients[, 4]) #this will give us the p values associated with the coefficients 
+names(lm_p) <- c("b0", "b1", "b2", "b3")
+
+#displaying the values
+rbind(beta_p, lm_p)
+```
+
+So, the p-values associated with our estimates are almost identical. The only different that occurs is due to the fact that `lm()` calculates standard errors a bit differently and because it may also calculate p-values a bit differently. However, these p-values generally tell us the same thing, so it is unnecessary to get bogged down in the details.
+
+Now, that we have calculated the p-values, we will calculate multiple R2, which tells us the percentage of variance explained in `y` by our `x`'s. In the case of multiple linear regression, R2 is not the correlation between `x` (predictor) and `y` (outcome). Rather, we subtract the proportion of SSE to sum of squares total (SST) from 1. The SST tells you how much variation there is in the dependent variable `y`. 
+
+To calculate SST, the formula is:
+
+$$ SST = \Sigma(y_i - \bar{y_i})^2$$
+
+That is, we take the sum of squared differences between the observed values and the mean of the dependent variable.
+
+Then, to calculate R2:
+
+$$ R^2 = 1 - \frac{SSE}{SST}$$
+
+We have already calculated the SSE, so now we just need to calculate the SST.
+```{r}
+(SST <- sum((y - mean(y))^2))
+```
+
+Now, to calculate R2.
+```{r}
+(R2 <- 1 - (SSE/SST))
+```
+
+Now, to double check our calculation from the `lm()` object.
+```{r}
+summary(mod_test_2)
+```
+
+Our calculation matches the output.
+
+Now, we will create a function to perform multiple linear regression using the calculations used above. This will not be too complex and will only be used to accommodate the predictors used in the calculations. The goal of this document is not advanced function writing.
+```{r}
+multiple_ols <- function(y, x1, x2, x3){
+    #since this is linear regression, the outcome has to be numeric
+  if(!is.numeric(y)){
+    stop("y must be numeric")
+  }
+  #the predictors should be numeric; if it is categorical, it should be converted to a dummy variable
+  pred_list <- list(x1, x2, x3)
+  for(i in 1:length(pred_list)){
+    if(!is.numeric(pred_list[[i]])){
+      stop("predictors must be numeric or a dummy coded categorical variables")
+    }
+  }
+  #the variables should be the same length
+  pred_list <- list(x1, x2, x3)
+  for(i in 1:length(pred_list)){
+    if(length(pred_list[[i]]) != length(y)){
+      stop("variable lengths differ: all variables should have the same length")
+    }
+  }
+  
+  #now, to calculate the estimates for the intercept and slopes - first we will make a matrix containing the necessary information
+  X <- as.matrix(cbind(rep(1, 150), x1, x2, x3))
+  #then, we will make the calculations using linear algebra
+  beta_estimates <- solve(t(X) %*% X) %*% t(X) %*% y
+  #finally, we will clean up the estimates to use in the output
+  beta_estimates <- as.vector(beta_estimates)
+  names(beta_estimates) <- c("b0", "b1", "b2", "b3")
+  
+  #calculating the predicted values using the regression equation
+  pred_values <- numeric()
+  for(i in 1:length(y)){
+    pred_values[i] <- round(beta_estimates[1] + beta_estimates[2]*x1[i] + beta_estimates[3]*x2[i] +   beta_estimates[4]*x3[i], digits = 6)
+  }
+  
+  #now we need to calculate the SSE for later use
+  SSE <- round(sum((y - pred_values)^2), digits = 4)
+  #now calculating the MSE for later use
+  MSE <- round(SSE/(n - 2), digits = 4)
+  #and calculating the SST for later use 
+  SST <- round(sum((y - mean(y))^2), digits = 4)
+  
+  #now calculating the standard errors 
+  beta_se <- sqrt(diag(MSE * solve(t(X) %*% X)))
+  #cleaning up our vector
+  beta_se <- as.vector(beta_se)
+  names(beta_se) <- c("b0", "b1", "b2", "b3")
+  
+  #now calculating t values for our estimates
+  beta_t <- beta_estimates/beta_se
+  #cleaning up our vector
+  names(beta_t) <- c("b0", "b1", "b2", "b3")
+  
+  #now calculating the p values for our estimates
+  pb0 <- 2 * pt(abs(tb0), df = (n - 2), lower.tail = FALSE)
+  pb1 <- 2 * pt(abs(tb1), df = (n - 2), lower.tail = FALSE)
+  pb2 <- 2 * pt(abs(tb2), df = (n - 2), lower.tail = FALSE)
+  pb3 <- 2 * pt(abs(tb3), df = (n - 2), lower.tail = FALSE)
+  #cleaning up our vector
+  beta_p <- c(pb0, pb1, pb2, pb3)
+  names(beta_p) <- c("b0", "b1", "b2", "b3")
+  #since some p values may be really small, will do some control for the estimates
+  for(i in 1:length(beta_p)){
+  if(beta_p[i] < 0.001){
+    beta_p[i] <- 0.001
+    }
+  }
+  
+  #calculating R2
+  R2 <- 1 - (SSE/SST)
+  
+  #binding all of the elements together
+  out <- round(cbind(beta_estimates, beta_se, beta_t, beta_p), digits = 4)
+  
+  #printing the output
+  return(out)
+}
+```
+
+Now to check if the function works.
+```{r}
+multiple_ols(y = y, x1 = x1, x2 = x2, x3 = x3)
+```
+
+The function works as intended and gives us the correct output. 
+
+-----
+
+# End of document
+
+-----
+
+```{r}
+sessionInfo()
+```
+
