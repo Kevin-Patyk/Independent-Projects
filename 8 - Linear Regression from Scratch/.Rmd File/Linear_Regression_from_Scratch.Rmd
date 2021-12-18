@@ -21,11 +21,15 @@ The formula for the estimate of the slope is:
 ![](/Users/onef0/Desktop/Pictures/OLS1.jpg){height=350px}
 </p>
 
+Image credit to [Alpharithms.com](https://www.alpharithms.com/simple-linear-regression-modeling-502111/).
+
 The formula for the estimate of the intercept is:
 
 <p align="center">
 ![](/Users/onef0/Desktop/Pictures/OLS2.jpg){height=350px}
 </p>
+
+Image credit to [Alpharithms.com](https://www.alpharithms.com/simple-linear-regression-modeling-502111/).
 
 First, we will prepare data so that we can do our calculations. We will be using the `iris` data which is with in `R` by default. For simplicity, we will be using `Petal.Length` as our `y` (outcome) `Petal.Width` as our `x` (predictor).
 ```{r}
