@@ -1142,7 +1142,7 @@ rectangle(len_t = 3, a = c(1,3,1), b = c(1,2,2), c = c(2,2,2), d = c(2,3,2))</co
 ## [1] &quot;NO&quot;</code></pre>
 </div>
 <div id="is-it-a-vowel-or-consonant" class="section level1">
-<h1>32 - Is it a VOWEL or CONSONANT</h1>
+<h1>32 - Is it a Vowel or Consonant</h1>
 <p>Write a program to take a character (C) as input and check whether the given character is a vowel or a consonant.</p>
 <p>NOTE: Vowels are ‘A’, ‘E’, ‘I’, ‘O’, ‘U’. Rest all alphabets are called consonants.</p>
 <ul>
@@ -1210,7 +1210,7 @@ mindiff(len_t = 3, n = c(3,5,3), m = c(4,2,4), k = c(1,1,3))</code></pre>
 ## [1] 0</code></pre>
 </div>
 <div id="area-or-perimeter" class="section level1">
-<h1>34 - Area OR Perimeter</h1>
+<h1>34 - Area or Perimeter</h1>
 <p>Write a program to obtain length (L) and breadth (B) of a rectangle and check whether its area is greater or perimeter is greater or both are equal.</p>
 <ul>
 <li><p>Input: Write a program to obtain length (L) and breadth (B) of a rectangle and check whether its area is greater or perimeter is greater or both are equal. Second line will contain the breadth (B) of the rectangle.</p></li>
@@ -1242,7 +1242,7 @@ areaperi(L = c(1,3,5), B = c(2,4,6))</code></pre>
 ## 3      Area  30</code></pre>
 </div>
 <div id="how-many-digits-do-i-have" class="section level1">
-<h1>35 - HOW MANY DIGITS DO I HAVE</h1>
+<h1>35 - How Many Digits Do I Have?</h1>
 <p>Write a program to obtain a number (N) from the user and display whether the number is a one digit number, 2 digit number, 3 digit number or more than 3 digit number.</p>
 <ul>
 <li><p>Input: First line will contain the number N</p></li>
@@ -1329,14 +1329,99 @@ tricoin(len_t = 3, n = c(3,5,7))</code></pre>
 transmog(len_t = 5, n = c(2,4,1,35,1), k = 10)</code></pre>
 <pre><code>## [1] 1</code></pre>
 </div>
-<div id="bear-and-candies-123" class="section level1">
-<h1>38 - Bear and Candies 123</h1>
-<p>You are given a string. Your task is to determine whether number of occurrences of some character in the string is equal to the sum of the numbers of occurrences of other characters in the string.</p>
+<div id="how-much-scholarship" class="section level1">
+<h1>38 - How Much Scholarship</h1>
+<p>The ZCO Scholarship Contest has just finished, and you finish with a rank of R. You know that Rank 1 to Rank 50 will get 100% scholarship on the ZCO exam fee and Rank 51 to Rank 100 will get 50% percentage scholarship on the ZCO exam fee. The rest do not get any scholarship. What percentage of scholarship will you get ?</p>
 <ul>
-<li><p>Input: The first line of the input contains an integer T denoting the number of test cases. Each of the next T lines contains one string S consisting of lowercase latin letters.</p></li>
-<li><p>Output: For each test case, output a single line containing “YES” if the string satisfies the condition given above or “NO” otherwise.</p></li>
-<li><p>Constraints: 1 &lt;= T &lt;= 1000, 1 &lt;= S &lt;= 50</p></li>
+<li><p>Input: Input consist of single line of input containing one integer R.</p></li>
+<li><p>Output: Output a single line containing one integer — the percentage of scholarship you will get.</p></li>
+<li><p>Constraints: 1 ≤ R ≤ 10^9</p></li>
 </ul>
+<pre class="r"><code>howmuch &lt;- function(r){
+  stopifnot(r &gt;= 1, r &lt;= 10^9)
+  for(i in 1:length(r)){
+  if(r[i] &gt;= 1 &amp; r[i] &lt;= 50){
+    print(100)
+  } else if(r[i] &gt;= 51 &amp; r[i] &lt;= 100){
+    print(50)
+  } else {
+    print(0)
+  }
+ }
+}
+
+howmuch(r = c(1, 52, 300))</code></pre>
+<pre><code>## [1] 100
+## [1] 50
+## [1] 0</code></pre>
+</div>
+<div id="pair-me" class="section level1">
+<h1>39 - Pair Me</h1>
+<p>Chef is always trying to find patterns within integers. Today Chef has 3 positive integers and he wonders if any one of them can be written as the sum of the other two integers.</p>
+<ul>
+<li><p>Input: First line will contain T, which is the number of test cases. Then the test cases follow. Each test case contains a single line of input, with three space-separated positive integers x, y, and z.</p></li>
+<li><p>Output: For each test case, output in a single line, “YES” if it’s possible to represent any integer among the three integers as the sum of the other two integers, and “NO” if not.</p></li>
+<li><p>Constraints: 1 &lt;= x,y,z &lt;= 1000</p></li>
+</ul>
+<pre class="r"><code>pairme &lt;- function(len_t, x){
+  stopifnot(unlist(x) &gt;= 1, unlist(x) &lt;= 1000)
+  stor &lt;- list()
+  for(i in 1:length(x)){
+    stor[[i]] &lt;- x[[i]][-which.max(x[[i]])]
+    if(sum(stor[[i]]) == max(x[[i]])){
+      stor[[i]] &lt;- &quot;YES&quot;
+    } else {
+      stor[[i]] &lt;- &quot;NO&quot;
+    }
+  }
+  return(stor)
+}
+
+pairme(len_t = 3, x = list(c(1,2,3), c(1,2,4), c(1,2,5)))</code></pre>
+<pre><code>## [[1]]
+## [1] &quot;YES&quot;
+## 
+## [[2]]
+## [1] &quot;NO&quot;
+## 
+## [[3]]
+## [1] &quot;NO&quot;</code></pre>
+</div>
+<div id="simple-statistics" class="section level1">
+<h1>40 - Simple Statistics</h1>
+<p>Sergey has made N measurements. Now, he wants to know the average value of the measurements made.</p>
+<p>In order to make the average value a better representative of the measurements, before calculating the average, he wants first to remove the highest K and the lowest K measurements. After that, he will calculate the average value among the remaining N - 2K measurements.</p>
+<p>Could you help Sergey to find the average value he will get after these manipulations?</p>
+<ul>
+<li><p>Input: The first line of the input contains an integer T denoting the number of test cases. The description of T test cases follows. The first line of each test case contains two space-separated integers N and K denoting the number of measurements and the number of the greatest and the lowest values that will be removed. The second line contains N space-separated integers A1, A2, …, AN denoting the measurements.</p></li>
+<li><p>Output: For each test case, output a single line containing the average value after removing K lowest and K greatest measurements. Your answer will be considered correct, in case it has absolute or relative error, not exceeding 10-6.</p></li>
+<li><p>Constraints: 1 ≤ T ≤ 100, 1 ≤ N ≤ 10^4, 0 ≤ 2K &lt; N, -10^6 ≤ Ai ≤ 10^6</p></li>
+</ul>
+<pre class="r"><code>simplestats &lt;- function(len_t, n, k, a){
+  stopifnot(len_t &gt;= 1, len_t &lt;= 100, n &gt;= 1, n &lt;= 10^4, 0 &lt;= k, n &gt; k, unlist(a) &gt;= -10^6, unlist(a) &lt;= 10^6)
+  stor &lt;- list()
+  for(i in 1:length(a)){
+  if(k[i] &gt; 0){
+    for(j in 1:k[i]){
+      a[[i]] &lt;- a[[i]][-c(which.max(a[[i]]), which.min(a[[i]]))]
+      stor[[i]] &lt;- mean(a[[i]])
+    }
+  } else if(k[i] == 0){
+    stor[[i]] &lt;- mean(a[[i]])
+  }
+}
+  return(stor)
+}
+
+simplestats(len_t = 3, n = c(5, 5, 3), k = c(1, 0, 1), a = list(c(2, 9, -10, 25, 1), c(2, 9, -10, 25, 1), c(1,1,1)))</code></pre>
+<pre><code>## [[1]]
+## [1] 4
+## 
+## [[2]]
+## [1] 5.4
+## 
+## [[3]]
+## [1] 1</code></pre>
 <hr />
 </div>
 <div id="end-of-document" class="section level1">
@@ -1364,7 +1449,7 @@ transmog(len_t = 5, n = c(2,4,1,35,1), k = 10)</code></pre>
 ##  [5] evaluate_0.14   rlang_0.4.11    stringi_1.7.5   jquerylib_0.1.4
 ##  [9] bslib_0.3.1     rmarkdown_2.11  tools_4.1.1     stringr_1.4.0  
 ## [13] xfun_0.25       yaml_2.2.1      fastmap_1.1.0   compiler_4.1.1 
-## [17] htmltools_0.5.2 knitr_1.34      sass_0.4.0</code></pre>
+## [17] htmltools_0.5.2 knitr_1.36      sass_0.4.0</code></pre>
 </div>
 
 
