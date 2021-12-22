@@ -1,0 +1,220 @@
+---
+title: "Nested For Loops"
+author: "Kevin Patyk"
+date: "12/22/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+The placing of one `for` loop inside the body of another `for` loop is called nesting. When you “nest” two `for` loops, the outer loop takes control of the number of complete repetitions of the inner loop. Thus inner loop is executed N-times for every execution of outer loop.
+
+-----
+
+# Examples
+
+In this first example, we will be calculating the distances between the observations in vectors `x` and `y`.
+```{r}
+#define x and y
+x <- 1:10
+y <- 1:10
+
+#create storage for the nested for loop
+mat_out <- matrix(data = 0, nrow = 10, ncol = 10)
+
+#rune the nested for loop 
+for(i in 1:length(x)){
+  for(j in 1:length(y)){
+    mat_out[i, j] <- (x[i] - y[j])
+  }
+}
+
+mat_out
+```
+
+So, what exactly happened here? The outer loop runs a total of 10 times since there are 10 observations in `x` (`1:length(x)`). And, for every single one of those 10 runs, the inner loop runs 10 times as well since there are 10 observations in `y` (`1:length(y)`). In this case, there are a total of 100 iterations ($10 \cdot 10 = 100$). Each iteration looks like the code below.
+```{r}
+#creating a new storage matrix
+mat_out2 <- matrix(data = 0, nrow = 10, ncol = 10)
+
+#iteration 1
+(mat_out2[1, 1:10] <- (x[1] - y[1:10]))
+#iteration 2
+(mat_out2[2, 1:10] <- (x[2] - y[1:10]))
+#iteration 3
+(mat_out2[3, 1:10] <- (x[3] - y[1:10]))
+#iteration 4
+(mat_out2[4, 1:10] <- (x[4] - y[1:10]))
+#iteration 5
+(mat_out2[5, 1:10] <- (x[5] - y[1:10]))
+#iteration 6
+(mat_out2[6, 1:10] <- (x[6] - y[1:10]))
+#iteration 7
+(mat_out2[7, 1:10] <- (x[7] - y[1:10]))
+#iteration 8
+(mat_out2[8, 1:10] <- (x[8] - y[1:10]))
+#iteration 9
+(mat_out2[9, 1:10] <- (x[9] - y[1:10]))
+#iteration 10
+(mat_out2[10, 1:10] <- (x[10] - y[1:10]))
+```
+
+As you can see, we get exactly the same result as when we run the nested `for` loop. To put it in different terms, for each iteration of `i`, `j` runs 10 times. In this case, we replaced `j` with `1:10` to make the code shorter. But, when running the nested `for` loop, it actually looks something like this, which will be kept short because it would otherwise be way too much to read. This is how the first 10 iterations of the `for` loop would look like. 
+```{r}
+#creating a new storage matrix
+mat_out3 <- matrix(data = 0, nrow = 10, ncol = 10)
+
+#iteration 1
+(mat_out3[1, 1] <- (x[1] - y[1]))
+#iteration 2
+(mat_out3[1, 2] <- (x[1] - y[2]))
+#iteration 3
+(mat_out3[1, 3] <- (x[1] - y[3]))
+#iteration 4
+(mat_out3[1, 4] <- (x[1] - y[4]))
+#iteration 5
+(mat_out3[1, 5] <- (x[1] - y[5]))
+#iteration 6
+(mat_out3[1, 6] <- (x[1] - y[6]))
+#iteration 7
+(mat_out2[1, 7] <- (x[1] - y[7]))
+#iteration 8
+(mat_out3[1, 8] <- (x[1] - y[8]))
+#iteration 9
+(mat_out3[1, 9] <- (x[1] - y[9]))
+#iteration 10
+(mat_out3[1, 10] <- (x[1] - y[10]))
+```
+
+Now, for another example where we will be calculating the distances between all points in a matrix.
+```{r}
+#making a short data frame
+df <- iris[c(1:5, 51:55, 101:105), -5]
+
+#examining the first 6 observations
+head(df)
+
+#fixing the rownames
+rownames(df) <- NULL
+
+#converting the data frame into a matrix
+mat <- as.matrix(df)
+```
+
+Now, we will create a nested for loop to calculate the Euclidean distances between all of the points. In other words, we want to find the distances between points row-wise (differences between rows 1 and 1, rows 1 and 2, rows 1 and 3, ..., rows 2 and 1, rows 2 and 2, rows 2 and 3, ..., rows 3 and 1, rows 3 and 2, rows 3 and 3, ..., rows n and n).
+
+*Note*: Even though there are 4 variables and 1 observation per variable, making 4 observations per row, there will only be one number as the output for the Euclidean distance because of summation. The formula for Euclidean distance is below:
+
+$$ ||a-b||_2 = \sqrt{\Sigma(a_i-b_i)^2} $$
+
+Now, to create the nested `for` loop. 
+```{r}
+#create storage for the nested for loop
+mat_out <- matrix(data = 0, nrow = nrow(mat), ncol = nrow(mat))
+
+#creating a nested for loop to calculate the euclidean distances between all points 
+for (i in 1:nrow(mat)){ 
+  for (j in 1:nrow(mat)){ 
+  mat_out[i,j] <- round(sqrt(sum((mat[i, ] - mat[j, ])^2)), digits = 2)
+  }
+}
+
+mat_out
+```
+
+So, what exactly happened here? The outer loop runs a total of 15 times since there are 15 rows in `mat` (`1:nrow(mat)`). And, for every single one of those 15 runs, the inner loop runs 15 times as well since there are 15 rows in `mat` (`1:nrow(mat)`). In this case, there are a total of 225 iterations ($15 \cdot 15 = 225$).
+```{r}
+#creating a new storage matrix
+mat_out2 <- matrix(data = 0, nrow = 15, ncol = 15)
+
+#iteration 1
+(mat_out2[1, 1] <- round(sqrt(sum((mat[1, ] - mat[1, ])^2)), digits = 2))
+#iteration 2
+(mat_out2[1, 2] <- round(sqrt(sum((mat[1, ] - mat[2, ])^2)), digits = 2))
+#iteration 3
+(mat_out2[1, 3] <- round(sqrt(sum((mat[1, ] - mat[3, ])^2)), digits = 2))
+#iteration 4
+(mat_out2[1, 4] <- round(sqrt(sum((mat[1, ] - mat[4, ])^2)), digits = 2))
+#iteration 5
+(mat_out2[1, 5] <- round(sqrt(sum((mat[1, ] - mat[5, ])^2)), digits = 2))
+#iteration 6
+(mat_out2[1, 6] <- round(sqrt(sum((mat[1, ] - mat[6, ])^2)), digits = 2))
+#iteration 7
+(mat_out2[1, 7] <- round(sqrt(sum((mat[1, ] - mat[7, ])^2)), digits = 2))
+#iteration 8
+(mat_out2[1, 8] <- round(sqrt(sum((mat[1, ] - mat[8, ])^2)), digits = 2))
+#iteration 9
+(mat_out2[1, 9] <- round(sqrt(sum((mat[1, ] - mat[9, ])^2)), digits = 2))
+#iteration 10
+(mat_out2[1, 10] <- round(sqrt(sum((mat[1, ] - mat[10, ])^2)), digits = 2))
+#iteration 11
+(mat_out2[1, 11] <- round(sqrt(sum((mat[1, ] - mat[11, ])^2)), digits = 2))
+#iteration 12
+(mat_out2[1, 12] <- round(sqrt(sum((mat[1, ] - mat[12, ])^2)), digits = 2))
+#iteration 13
+(mat_out2[1, 13] <- round(sqrt(sum((mat[1, ] - mat[13, ])^2)), digits = 2))
+#iteration 14
+(mat_out2[1, 14] <- round(sqrt(sum((mat[1, ] - mat[14, ])^2)), digits = 2))
+#iteration 15
+(mat_out2[1, 15] <- round(sqrt(sum((mat[1, ] - mat[15, ])^2)), digits = 2))
+
+mat_out2
+```
+
+As you can see, we get exactly the same result as when we run the nested `for` loop. To put it in different terms, for each iteration of `i`, `j` runs 15 times. In this case, we replaced `j` with the respective numbers (`1:15`) so that you can see what happens during the first 15 iterations of the `for` loop. 
+
+Let's do another example, but keep it a bit more simple this time. In this example, we will make a nested `for` loop that multiplies numbers from 2 vectors together. The 2 vectors are `1:5` and `1:2`. Thus, there will be a total of 10 iterations ($5 \cdot 2 = 10$). At each iteration, we will `print()` the result of the multiplication. 
+```{r}
+for(i in 1:5){
+  for(j in 1:2){
+    print(i*j)
+  }
+}
+```
+
+So, what exactly happened here? We will break it down again line by line for a more complete understanding. For each iteration of `i`, `j` runs 2 times. 
+```{r}
+#iteration 1
+print(1*1)
+#iteration 2
+print(1*2)
+#iteration 3
+print(2*1)
+#iteration 4
+print(2*2)
+#iteration 5
+print(3*1)
+#iteration 6
+print(3*2)
+#iteration 7
+print(4*1)
+#iteration 8
+print(4*2)
+#iteration 9
+print(5*1)
+#iteration 10
+print(5*2)
+```
+
+And we get exactly the same results as the nested `for` loop. There are plenty of other examples that can be done and some practice is required. It is definitely worth learning since nested `for` loops can facilitate many tasks. 
+
+As one last note, I have made a helpful image to display how a nested `for` loop works. I like to imagine the process like First Outside Inside Last (FOIL). FOIL is used when multiplying 2 binomials and is a very common mnemonic. Below is a visualization to show you what I mean:
+
+<p align="center">
+![](C:/Users/onef0/Desktop/UU/Independent Projects/Nested For Loops/Images/Nested_Visualized.PNG)
+</p>
+
+-----
+
+# End of document
+
+-----
+
+```{r}
+sessionInfo()
+```
+
