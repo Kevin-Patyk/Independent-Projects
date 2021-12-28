@@ -1,0 +1,425 @@
+---
+title: "Logistic Regression from Scratch"
+author: "Kevin Patyk"
+date: "12/26/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = 'center')
+```
+
+# Introduction
+
+In this manuscript, we will be covering how to perform logistic regression from scratch. The mathematical theory will be outlined and then a function will be made using `R`. The `glm()` function will only be used for comparison.
+
+Loading the required libraries.
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(patchwork)
+library(ISLR)
+```
+
+-----
+
+# What is logistic regression?
+
+Logistic regression is a statistical model that in its basic form uses a logistic function to model a binary dependent variable. Unlike linear regression, which is used to make a prediction on the numeric response, logistic regression is used to make a prediction on a binary outcome. For example, when a student applies for medical school, based on their previous grades and other academic variables, will their top choice admit them or not?
+
+The goal of logistic regression is to make a prediction on the probability that an outcome will or will not happen. Due to the nature of probability, the prediction will between $[0, 1]$. By the rule of thumb, if the predicted probability is $\geq 0.5$, then we can say that the outcome does occur; if the predicted probability is $ < 0.5$, then we can say the outcome does not occur. Other thresholds can be used based on different criteria, but this is the most basic. 
+
+The reason that we cannot use linear regression for a binary outcome is because the range of linear regression is $[-\infty, \infty]$ and not between $[0, 1]$. The sigmoid function is introduced to solve this problem. The sigmoid function is used convert a value into a probability between $[0, 1]$. The equation of for the sigmoid function is:
+
+$$ h_{\theta}(x)=\frac{1}{1+e^{-z}} $$
+
+Where $h_{\theta}(x)$ is an output between $[0, 1]$ (a probability estimated), $z$ is an input to the function (your algorithm’s prediction e.g. mx + b), and $e$ is Euler's number (base of a natural log).
+
+The sigmoid function gives an S-shaped curve and flattens when its argument is highly positive or negative. For the sigmoid function, the input is any value of $x$ and the output is a probability between $[0, 1]$. An example is demonstrated below.
+
+First, we define the sigmoid function.
+```{r}
+#sigmoid function 
+sigmoid <- function(x){
+  
+  #defining the sigmoid function
+  prob_out <- 1/(1 + exp(-x))
+  
+  #returning the output of the sigmoid function 
+  return(prob_out)
+}
+```
+
+Now, we can apply the sigmoid function and see it in action with an example.
+```{r}
+#defining x
+x <- seq(-5, 5, 0.01)
+
+#plotting x and storing it in an object
+xl <- data.frame("y" = x, "x" = 1:length(x)) %>% 
+  ggplot(aes(y = y, x = x)) +
+  geom_line(color = "blue", size = 2) +
+  labs(title = "Plot of x as Linear", x = "Index", y = "Values of x") + 
+  theme_minimal()
+
+#plotting sigmoid x and storing it in an object
+xs <- data.frame("y" = sigmoid(x), "x" = 1:length(x)) %>% 
+  ggplot(aes(y = y, x = x)) +
+  geom_line(color = "blue", size = 2) +
+  labs(title = "Plot of x as Sigmoid", x = "Index", y = "Values of x") +
+  theme_minimal()
+
+#displaying the 2 plots side by side
+xl + xs
+```
+
+As you can see, the values of `x` were originally bounded between $[-5, 5]$, but after running the values through the sigmoid function, the values of `x` are now bounded between $[0, 1]$. Additionally, the line becomes an S-shaped curve. 
+
+Finally, the derivative of the sigmoid function is below. This is important because we will use it to calculate the gradient of the cost function for maximum likelihood estimation.
+
+$$h_{\theta}'(x) =  h_{\theta}(x) \cdot (1-h_{\theta}(x))$$
+
+Now we will plot the derivative of the sigmoid function to see how it looks visually.
+```{r}
+#getting the derivative of the sigmoid function
+d_sig <- sigmoid(x)*(1-sigmoid(x))
+#plotting sigmoid derivative x and storing it in an object
+xd <- data.frame("y" = d_sig, "x" = 1:length(x)) %>% 
+  ggplot(aes(y = y, x = x)) +
+  geom_line(color = "blue", size = 2) +
+  labs(title = "Plot of x as Sigmoid Derivative", x = "Index", y = "Values of x") +
+  theme_minimal()
+
+#now plottign the sigmoid function and the derivative of the sigmoid function
+xs + xd
+```
+
+----- 
+
+# Maximum likelihood estimation 
+
+If we take a random sample from the population which can either take the value 1 with probability $p$ and the value 0 with probability $1 - p$, we can say that record follows a Bernoulli distribution. The probability mass function for the Bernoulli distribution is: 
+
+$$ p(y_i|x_i) = p^{y_i} \cdot (1-p)^{1-y_i}$$
+
+In this formula, In this formula, $y$ is an indicator either (1 or 0) and $p$ is the probability that event happen. In this case, we have 2 possible outcomes, either "success" or "failure". The probability that $x = 1$ ("success") is $p$ and the probability that $x = 0$ ("failure") is $1 - p$.
+
+What if there are $n$ records in total? What is the probability in such a case? In brief, assuming each record is independent and identically distributed (IID), we can get the product of $n$ Bernoulli distributions. This will be the likelihood function. The equation is:
+
+$$ L(\theta)=\prod_{i=1}^{n} p^{y_i}(1-p)^{1-y_{i}} $$
+
+Where:
+
+$$ h_{\theta}(x)= p = \frac{1}{1+e^{-z}} $$ 
+
+Now that we have the likelihood, we will write the log likelihood of the function. We take the natural log of the likelihood for computational reasons. The exact reason is that, if you take the product of many probabilities, the number will be very close to 0, so the computer will just set it to 0 (numerical precision errors). Furthermore, when we take the log of a product, we get a sum, which is easier to work with. The log is monotonically increasing, so maximizing likelihood is equivalent to maximizing log likelihood. The equation now becomes: 
+
+$$\begin{equation}
+\begin{aligned}
+LL(\theta) &=\sum_{i=1}^{n} \log p^{y_i}(1-p)^{1-y_i} \\
+&=\sum_{i=1}^{n} y_i(\log(p)+\left(1-y_i\right) \log (1-p))
+\end{aligned}
+\end{equation}$$
+
+Where:
+
+$$ h_{\theta}(x)= p = \frac{1}{1+e^{-z}} $$ 
+
+In statistics, maximum likelihood estimation is widely used to obtain the parameters for a distribution given a set of observations. In this paradigm, to maximize log likelihood is equal to minimize the cost function $J$. The cost function $J$ (called the Log Loss) is outlined below:
+
+$$ J(\theta)=-\frac{1}{m} \sum_{i=1}^{m}\left[y^{(i)} \log \left(h_{\theta}\left(x^{(i)}\right)\right)+\left(1-y^{(i)}\right) \log \left(1-h_{\theta}\left(x^{(i)}\right)\right)\right] $$
+
+Where $m$ is the number of observations and
+
+$$ h_{\theta}(x)=\frac{1}{1+e^{-x}} $$
+
+In other words, this is the cost the algorithm pays if it predicts a value $h_{\theta}(x)$ while the actual label turns out to be $y$. 
+
+Multiplying by $h_{\theta}(x^{(i)})$ and $1−h_{\theta}(x^{(i)})$ in the above equation is a sneaky trick that lets us use the same equation to solve for both $y=1$ and $y=0$ cases. If $y=0$, the first side cancels out. If $y=1$, the second side cancels out. In both cases we only perform the operation we need to perform.
+
+The cost function is such that every incorrect prediction (or further away from the real value) will increase its value.
+
+-----
+
+# Gradient descent
+
+Unlike linear regression, which has a closed-form solution, an optimization algorithm must be applied in the case of logistic regression. In logistic regression, gradient descent is applied. We cannot use a loss function similar to one we use in linear regression, such as mean squared error (MSE), because our prediction function is non-convex, whereas the natural logrithm of the likelihood function is. If it is non-convex, then the lie can be wavy and contain many points of local optima.
+
+<p align="center">
+![](C:/Users/onef0/Desktop/UU/Independent Projects/Logistic Regressiom from Scratch/Log Reg Scratch/Images/Non_Convex.PNG)
+</p>
+
+<p align="center">
+Image credit to [A. Aylin Tokuç](https://www.baeldung.com/cs/gradient-descent-logistic-regression).
+</p>
+
+The general idea of gradient descent is to tweak parameters $w$ (the slope coefficient) and $b$ (y-intercept) iteratively to minimize the cost function we have outlined. In this document, batch gradient descent is used, meaning that all the training data is taken into consideration to take a single step. We take the average of the gradients of all the training examples and then use that mean gradient to update our parameters. So that’s just one step of gradient descent in one epoch.
+
+Visually, gradient descent looks like:
+
+<p align="center">
+![](C:/Users/onef0/Desktop/UU/Independent Projects/Logistic Regressiom from Scratch/Log Reg Scratch/Images/Gradient_Descent.PNG){height=350px}
+</p>
+
+<p align="center">
+Image credit to [Saugat Bhattarai](https://saugatbhattarai.com.np/what-is-gradient-descent-in-machine-learning/).
+</p>
+
+A great analogy for gradient descent is given by [Ayush Pant](https://towardsdatascience.com/introduction-to-logistic-regression-66248243c148): "We have to imagine ourselves at the top of a mountain valley and left stranded and blindfolded, our objective is to reach the bottom of the hill. Feeling the slope of the terrain around you is what everyone would do. Well, this action is analogous to calculating the gradient descent, and taking a step is analogous to one iteration of the update to the parameters."
+
+To minimize our cost function, we need to run the gradient descent on each parameter $\theta_j$:
+
+$$ \theta_{j} \leftarrow \theta_{j}-\alpha \frac{\partial}{\partial \theta_{j}} J(\theta) $$
+
+Where $\alpha$ is the learning rate. If the learning rate is too large we may "overshoot" the optimal minimum value. If the learning rate is too small we will need too many iterations to converge to the best values and this can be time-consuming and computationally expensive. That's why it is important to select a well-tuned learning rate.
+
+Furthermore, we need to update each parameter simultaneously for each iteration. In other words, we need to loop through the parameters $\theta_0, \theta_1, …, \theta_n$ in vector $\theta = [\theta_0, \theta_1, ..., \theta_n]$.
+
+To complete the algorithm, we need the value of $\frac{\partial}{\partial \theta_j} J(\theta)$ (this is the gradient of the cost function). The gradient of the cost function tells us the slope of the line tangent to the cost function and will tell us in which direction we need to move to find the minimum. The equation is: 
+
+$$
+\frac{\partial}{\partial \theta_{j}} J(\theta)=\frac{1}{m} \sum_{i=1}^{m}\left(h_{\theta}\left(x^{(i)}\right)-y^{(i)}\right) x_{j}^{(i)}
+$$
+
+Where:
+
+$$ h_{\theta}(x)=\frac{1}{1+e^{-z}} $$ 
+
+Plugging this into the gradient descent function leads to the update rule:
+
+$$ \theta_{j} \leftarrow \theta_{j}-\alpha \frac{1}{m} \sum_{i=1}^{m}\left(h_{\theta}\left(x^{(i)}\right)-y^{(i)}\right) x_{j}^{(i)} $$
+
+Where:
+
+$$ h_{\theta}(x)=\frac{1}{1+e^{-z}} $$ 
+
+By iterating over the training samples until convergence, we reach the optimal parameters $\theta$ leading to minimum cost.
+
+All in on simple picture, gradient descent visually looks like (where $J(w)$ is the cost function):
+
+<p align="center">
+![](C:/Users/onef0/Desktop/UU/Independent Projects/Logistic Regressiom from Scratch/Log Reg Scratch/Images/Gradient_Descent_2.PNG){height=350px}
+</p>
+
+<p align="center">
+Image credit to [Rand Low](https://randlow.github.io/posts/machine-learning/cost-func-gradient-descent-boost/).
+</p>
+
+-----
+
+# Coding logistic regression in `R`
+
+For this, we will be using the `Smarket` data, which is built into the `ISLR` package. The data will also be provided in the `Data` folder. 
+```{r}
+df <- Smarket
+```
+
+Now to check the dimensions and the structure.
+```{r}
+#dimensions
+dim(df)
+#structure
+str(df)
+```
+
+So, our outcome variable $y$ is `Direction` and our predictor variables with be `Lag1 - Lag5`, and `Volume`.
+```{r}
+#creating a data frame of our predictors
+X <- df %>%
+  select(Lag1, Lag2, Lag3, Lag4, Lag5, Volume) 
+#creating a vector of our true labels
+y <- df %>%
+  select(Direction) %>%
+  mutate(Direction = ifelse(Direction == "Up", 1, 0)) %>%
+  unlist()
+```
+
+Now we will run the `glm()` function (a logistic regression model) so that we have some output to compare to later.
+```{r}
+#making a temporary data frame to run the glm function
+df_test <- data.frame(scale(X), y)
+
+#running the logistic regression
+log_mod <- glm(formula = y ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume, data = df_test, family = "binomial")
+#saving and printing the output of the logistic regression model
+(log_out <- summary(log_mod))
+```
+
+
+The code for gradient descent will look something like this:
+
+1. Initialize the parameters
+2. Repeat:
+    a. Make a prediction on $y$
+    b. Calculate cost function
+    c. Get gradient for cost function 
+    d. Update parameters
+
+First, we will define the cost function and the gradient function. Additionally, we have already defined the sigmoid function, but will do so again here.
+```{r eval=FALSE}
+#sigmoid function 
+sigmoid <- function(x){
+  
+  #defining the sigmoid function
+  prob_out <- 1/(1 + exp(-x))
+  
+  #returning the output of the sigmoid function 
+  return(prob_out)
+}
+
+#cost function 
+cost <- function(theta, X, y){
+  #X: Input/predictors
+  #y: true/target value
+  #theta: initial values for the bias and weights 
+  
+  #setting the number of observations
+  m <- length(y)
+  
+  #getting the initial probabilities for our observations
+  y_hat <- sigmoid(X %*% theta)
+  
+  #calculating the loss
+  cost <- (1/m)*sum(((-y) * log(y_hat)-(1-y) * log(1-y_hat)))
+  
+  #returning the loss 
+  return(cost)
+}
+
+#gradient function
+grad <- function(theta, X, y){
+  #X: Input/predictors
+  #y: true/target value
+  #theta: initial values for the bias and weights
+    
+    #setting the number of observations
+    m <- length(y)
+    
+    #getting the initial probabilities for our observations
+    y_hat <- sigmoid(X %*% theta)
+    
+    #calculate the gradient of the cost function
+    dw <- (t(X)%*%(y_hat - y))/m
+    
+    #returning the gradient
+    return(dw)
+}
+```
+
+Now, we will code the function to run the logistic regression with gradient descent.
+```{r}
+logReg <- function(X, y, Learning_Rate = 0.01, num_iterations = 2000){
+  #X: Input/predictors
+  #y: true/target value
+  #Learning_Rate = alpha 
+  #num_iterations = number of iterations 
+  
+  #specifying the learning rate
+  Learning_Rate <- Learning_Rate
+  #specifying the number of iterations
+  num_iterations <- num_iterations
+  #specifying the number of observations
+  m <- length(y)
+  #scaling the predictor space 
+  X <- as.data.frame(scale(X))
+  #adding a bias (intercept) term to the predictor matrix 
+  X$Intercept <- 1
+  #rearranging the predictor matrix so the bias comes first
+  X <- as.matrix(X[, c(ncol(X), 1:(ncol(X)-1))])
+  #coercing the true value vector y into a matrix 
+  y <- as.matrix(y)
+  #specifying the initial weights (slopes) and bias (intercept) to be all 0 
+  theta <- matrix(rep(0, ncol(X)), nrow = ncol(X))
+  #making a storage vector for the costs to plot later
+  cost_stor <- numeric()
+  
+  
+  #now creating a for loop which will run gradient descent 
+  for(i in 1:num_iterations){
+    
+    #apply the sigmoid function to initial probability predictions for our observations 
+    y_hat <- sigmoid(X %*% theta)
+    
+    #calculate the cost function
+    cost <- (1/m)*sum(((-y) * log(y_hat)-(1-y) * log(1-y_hat)))
+    
+    #store the output of the cost function
+    cost_stor[i] <- cost
+    
+    #calculate the gradient of the cost function
+    dw <- (t(X)%*%(y_hat - y))/m
+    
+    #update the weights and bias 
+    theta <- theta - Learning_Rate*dw
+    
+  }
+  return(list("Coefficients" = theta, "Cost" = cost_stor))
+}
+```
+
+Now its time to run out function and compare it to the output of the `glm()` function.
+```{r}
+#running our function
+log_mod_ours <- logReg(X = X, y = y)
+#displaying the results
+t(log_mod_ours$Coefficients)
+#printing the coefficients from the glm() function
+log_out$coefficients[,1]
+```
+
+As we can see, the output is almost completely identical, so our function has the correct calculations. Fantastic!
+
+We can now make a plot to see how the cost was minimized as the number of iterations of gradient descent increased.
+```{r}
+data.frame("Cost" = log_mod_ours$Cost, "Iterations" = 1:length(log_mod_ours$Cost)) %>%
+  ggplot(aes(x = Iterations, y = Cost)) +
+  geom_line(color = "blue", size = 2) +
+  labs(title = "Plot of Decreasing Cost as Itertations Increase") +
+  theme_minimal()
+```
+
+Lastly, we will define 2 functions which will allow us to make predictions given the coefficients we have manually estimated. We will then compare our output to the one provided by the `predict()` function.
+```{r}
+#probability of getting 1
+logisticProb <- function(theta, X){
+  #X: Input/predictors
+  #theta: initial values for the bias and weights
+  
+  #adding a bias (intercept) term to the predictor matrix 
+  X$Intercept <- 1
+  
+  #rearranging the predictor matrix so the bias comes first
+  X <- as.matrix(X[,c(ncol(X), 1:(ncol(X)-1))])
+  
+  #getting the probabilities of 1 by mutliplying the intercept and coefficients by our observed values
+  prob <- sigmoid(X %*% theta)
+  
+  #converting the probabilities into 1 or 0 using a threshold of >= 0.5
+  prob <- ifelse(prob >= 0.5, 1, 0)
+  
+  #returning the predicted y values
+  return(prob)
+}
+
+#running the function to get our predicted probabilities 
+prob <- logisticProb(theta = log_mod_ours$Coefficients, X = X)
+#displaying the first 6 results
+head(prob)
+
+#table of predict() class assignment 
+table(ifelse(predict(log_mod, newdata = X, type = "response") >= 0.5, 1, 0))
+#table of our class assignment 
+table(prob)
+```
+
+The predicted values for $y$ from our calculations match the output using the `predict()` function exactly. This, could be improved by using training and testing sets then comparing predicted $y$ values, but it will not be done because that is not the point of this document. The point was to understand and code logistic regression from scratch, which we achieved. 
+
+-----
+
+# End of document
+
+-----
+
+```{r}
+sessionInfo()
+```
+
