@@ -1,4 +1,16 @@
-# Independent Projects
+# Introduction
+
+Hello! My name is Kevin Patyk and I am currently a graduate student at Utrecht University studying Methodology and Statistics at the faculty of Social Sciences. I am set to graduate in June 2022. 
+
+Some of my interests include:
+
+* Data Science
+* Machine Learning
+* Missing Data Analysis
+* Data Visualization
+* Applied Statistics
+
+# Independent Projects Repository
 
 This is  repository for my independent projects, i.e. tasks I have completed or am working on outside of work or school and just based of off personal interest.
 
@@ -10,7 +22,7 @@ Some things in this repository include:
 * Coding exercises to bolster my skills, especially in practices I do not frequently use
 * Creating explanations for algorithms and/or coding for myself and to share with others
 
-If any of these files are of any interest to you or you feel may help, do not hestitate to fork the repository. Thank you and good luck!
+If any of these files are of any interest to you or you feel may help, do not hestitate to fork the repository. Thank you and have a nice day!
 
 
 

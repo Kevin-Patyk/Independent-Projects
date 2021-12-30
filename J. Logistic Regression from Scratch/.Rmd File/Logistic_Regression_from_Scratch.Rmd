@@ -26,13 +26,13 @@ library(ISLR)
 
 Logistic regression is a statistical model that in its basic form uses a logistic function to model a binary dependent variable. Unlike linear regression, which is used to make a prediction on the numeric response, logistic regression is used to make a prediction on a binary outcome. For example, when a student applies for medical school, based on their previous grades and other academic variables, will their top choice admit them or not?
 
-The goal of logistic regression is to make a prediction on the probability that an outcome will or will not happen. Due to the nature of probability, the prediction will between $[0, 1]$. By the rule of thumb, if the predicted probability is $\geq 0.5$, then we can say that the outcome does occur; if the predicted probability is $ < 0.5$, then we can say the outcome does not occur. Other thresholds can be used based on different criteria, but this is the most basic. 
+The goal of logistic regression is to make a prediction on the probability that an outcome will or will not happen. Due to the nature of probability, the prediction will between $[0, 1]$. By the rule of thumb, if the predicted probability is $\geq 0.5$, then we can say that the outcome does occur; if the predicted probability is $< 0.5$, then we can say the outcome does not occur. Other thresholds can be used based on different criteria, but this is the most basic. 
 
 The reason that we cannot use linear regression for a binary outcome is because the range of linear regression is $[-\infty, \infty]$ and not between $[0, 1]$. The sigmoid function is introduced to solve this problem. The sigmoid function is used convert a value into a probability between $[0, 1]$. The equation of for the sigmoid function is:
 
 $$ h_{\theta}(x)=\frac{1}{1+e^{-z}} $$
 
-Where $h_{\theta}(x)$ is an output between $[0, 1]$ (a probability estimated), $z$ is an input to the function (your algorithm’s prediction e.g. mx + b), and $e$ is Euler's number (base of a natural log).
+Where $h_{\theta}(x)$ is an output between $[0, 1]$ (a probability estimated), $z$ is an input to the function (your algorithm’s prediction e.g. $mx + b$), and $e$ is Euler's number (base of a natural log).
 
 The sigmoid function gives an S-shaped curve and flattens when its argument is highly positive or negative. For the sigmoid function, the input is any value of $x$ and the output is a probability between $[0, 1]$. An example is demonstrated below.
 
@@ -97,13 +97,13 @@ xs + xd
 
 # Maximum likelihood estimation 
 
-If we take a random sample from the population which can either take the value 1 with probability $p$ and the value 0 with probability $1 - p$, we can say that record follows a Bernoulli distribution. The probability mass function for the Bernoulli distribution is: 
+If we take a random sample from the population which can either take the value $1$ with probability $p$ and the value $0$ with probability $1 - p$, we can say that record follows a Bernoulli distribution. The probability mass function for the Bernoulli distribution is: 
 
 $$ p(y_i|x_i) = p^{y_i} \cdot (1-p)^{1-y_i}$$
 
-In this formula, In this formula, $y$ is an indicator either (1 or 0) and $p$ is the probability that event happen. In this case, we have 2 possible outcomes, either "success" or "failure". The probability that $x = 1$ ("success") is $p$ and the probability that $x = 0$ ("failure") is $1 - p$.
+In this formula, $y$ is an indicator either ($1$ or $0$) and $p$ is the probability that event happen. In this case, we have 2 possible outcomes, either "success" or "failure". The probability that $x = 1$ ("success") is $p$ and the probability that $x = 0$ ("failure") is $1 - p$.
 
-What if there are $n$ records in total? What is the probability in such a case? In brief, assuming each record is independent and identically distributed (IID), we can get the product of $n$ Bernoulli distributions. This will be the likelihood function. The equation is:
+What if there are $n$ records in total? What is the probability in such a case? In brief, assuming each record is independent and identically distributed (I.I.D), we can get the product of $n$ Bernoulli distributions. This will be the likelihood function. The equation is:
 
 $$ L(\theta)=\prod_{i=1}^{n} p^{y_i}(1-p)^{1-y_{i}} $$
 
@@ -111,7 +111,7 @@ Where:
 
 $$ h_{\theta}(x)= p = \frac{1}{1+e^{-z}} $$ 
 
-Now that we have the likelihood, we will write the log likelihood of the function. We take the natural log of the likelihood for computational reasons. The exact reason is that, if you take the product of many probabilities, the number will be very close to 0, so the computer will just set it to 0 (numerical precision errors). Furthermore, when we take the log of a product, we get a sum, which is easier to work with. The log is monotonically increasing, so maximizing likelihood is equivalent to maximizing log likelihood. The equation now becomes: 
+Now that we have the likelihood, we will write the log likelihood of the function. We take the natural log of the likelihood for computational reasons. The exact reason is that, if you take the product of many probabilities, the number will be very close to $0$, so the computer will just set it to $0$ (numerical precision errors). Furthermore, when we take the log of a product, we get a sum, which is easier to work with. The log is monotonically increasing, so maximizing likelihood is equivalent to maximizing log likelihood. The equation now becomes: 
 
 $$\begin{equation}
 \begin{aligned}
@@ -142,7 +142,7 @@ The cost function is such that every incorrect prediction (or further away from 
 
 # Gradient descent
 
-Unlike linear regression, which has a closed-form solution, an optimization algorithm must be applied in the case of logistic regression. In logistic regression, gradient descent is applied. We cannot use a loss function similar to one we use in linear regression, such as mean squared error (MSE), because our prediction function is non-convex, whereas the natural logrithm of the likelihood function is. If it is non-convex, then the lie can be wavy and contain many points of local optima.
+Unlike linear regression, which has a closed-form solution, an optimization algorithm must be applied in the case of logistic regression. In logistic regression, gradient descent is applied. We cannot use a loss function similar to one we use in linear regression, such as mean squared error (MSE), because our prediction function is non-convex, whereas the natural logarithm of the likelihood function is. If it is non-convex, then the line can be wavy and contain many points of local optima.
 
 <p align="center">
 ![](C:/Users/onef0/Desktop/UU/Independent Projects/Logistic Regressiom from Scratch/Log Reg Scratch/Images/Non_Convex.PNG)
@@ -152,7 +152,7 @@ Unlike linear regression, which has a closed-form solution, an optimization algo
 Image credit to [A. Aylin Tokuç](https://www.baeldung.com/cs/gradient-descent-logistic-regression).
 </p>
 
-The general idea of gradient descent is to tweak parameters $w$ (the slope coefficient) and $b$ (y-intercept) iteratively to minimize the cost function we have outlined. In this document, batch gradient descent is used, meaning that all the training data is taken into consideration to take a single step. We take the average of the gradients of all the training examples and then use that mean gradient to update our parameters. So that’s just one step of gradient descent in one epoch.
+The general idea of gradient descent is to tweak parameters $w$ (the slope coefficient) and $b$ (y-intercept) iteratively to minimize the cost function we have outlined. In this document, batch gradient descent is used, meaning that all the training data is taken into consideration to take a single step. 
 
 Visually, gradient descent looks like:
 
@@ -377,7 +377,7 @@ data.frame("Cost" = log_mod_ours$Cost, "Iterations" = 1:length(log_mod_ours$Cost
   theme_minimal()
 ```
 
-Lastly, we will define 2 functions which will allow us to make predictions given the coefficients we have manually estimated. We will then compare our output to the one provided by the `predict()` function.
+Lastly, we will define a function that will allow us to make predictions given the coefficients we have manually estimated. We will then compare our output to the one provided by the `predict()` function.
 ```{r}
 #probability of getting 1
 logisticProb <- function(theta, X){
@@ -411,7 +411,7 @@ table(ifelse(predict(log_mod, newdata = X, type = "response") >= 0.5, 1, 0))
 table(prob)
 ```
 
-The predicted values for $y$ from our calculations match the output using the `predict()` function exactly. This, could be improved by using training and testing sets then comparing predicted $y$ values, but it will not be done because that is not the point of this document. The point was to understand and code logistic regression from scratch, which we achieved. 
+The predicted values for $y$ from our calculations match the output using the `predict()` function exactly. This, could be improved by using training and testing sets then comparing predicted $y$ values, but it will not be done because that is not the point of this document. The point was to understand the fundamentals of logisitc regression and code logistic regression from scratch, which we achieved. 
 
 -----
 
