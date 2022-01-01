@@ -1,0 +1,285 @@
+---
+title: "Hierarchical Clustering from Scratch"
+author: "Kevin Patyk & Eli Clapper"
+date: "1/1/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
+```
+
+**NOTE**: This was a joint collaboration between [Kevin Patyk](https://github.com/Kevin-Patyk) and [Eli Clapper](https://github.com/EliClapper).
+
+# Introduction
+
+Hierarchical clustering is one of the popular and easy to understand clustering techniques. This clustering technique is divided into two types:
+
+* Agglomerative
+* Divisive
+
+**Agglomerative Hierarchical Clustering Technique**: In this technique, initially each data point is considered as an individual cluster. At each iteration, the similar clusters merge with other clusters until one cluster or K clusters are formed. This is a bottom-up approach. 
+
+<p align="center">
+![](C:/Users/onef0/Desktop/UU/Independent Projects/Hierarchical Clustering from Scratch/Hierarchical_Clustering_from_Scratch/Images/Agglomerative_Clustering.PNG){height=350px}
+</p>
+
+**Divisive Hierarchical Clustering Technique**: Initially, all the points in the dataset belong to one cluster and split is performed recursively as one moves down the hierarchy. The divisive clustering algorithm is a top-down clustering approach. 
+
+<p align="center">
+![](C:/Users/onef0/Desktop/UU/Independent Projects/Hierarchical Clustering from Scratch/Hierarchical_Clustering_from_Scratch/Images/Divisive_Clustering.PNG){height=350px}
+</p>
+
+In this manuscript, the focus will solely be on agglomerative hierarchical clustering since it has more practical applications and is used more frequently than divisive hierarchical clustering. 
+
+The basic algorithm of agglomerative clustering is rather straight forward: 
+
+1. Compute the distance matrix
+
+2. Let each data point be a cluster
+
+3. Repeat: Merge the two closest clusters and update the distance matrix
+
+4. Continue until only a single cluster remains 
+
+When performing hierarchical clustering, the choice of the appropriate distance metric will influence how the clusters are formed. When creating the proximity matrix for the individual data points, Euclidean distance is the most commonly metric. The formula for Euclidean distance is:
+
+$$ ||a-b||_2 = \sqrt{\Sigma(a_i-b_i)^2} $$
+
+After creating the distance matrix using Euclidean distance and once clusters start forming, the distance between clusters is measured using linkage. There are several types of linkage metrics available. One of the most commonly used ones is single linkage. The formula for single linkage is:
+
+$$ \min \{d(a, b): a \in A, b \in B\} $$
+
+What this formula is saying is that the distance between two clusters is the minimum distance between members of the two clusters. Visually, single linkage looks like:
+
+<p align="center">
+![](C:/Users/onef0/Desktop/UU/Independent Projects/Hierarchical Clustering from Scratch/Hierarchical_Clustering_from_Scratch/Images/Single_Linkage.PNG){height=300px}
+</p>
+
+-----
+
+# Loading libraries and data
+
+Since the goal of this manuscript is to code the algorithm from scratch, only the `tidyverse` will be used. When coding the algorithm from scratch, it will be compared to the function `hclust()` found in base `R`. 
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+In this manuscript, the in-built `iris` data will be used. This is because it is openly available for anyone to use and because there are existing labels for the clusters, which in this case are the species. The data set will be shortened to 15 observations for simplicity. Additionally, an `.csv` version of the `iris` data is available in the `Data` folder. 
+```{r}
+#taking only a small portion of the iris data
+df <- iris[c(1:5, 51:55, 101:105), ]
+#resetting the row names of the iris data so they are 1:15 
+rownames(df) <- NULL
+```
+
+Prior to coding the algorithm, we will do a quick inspection of the `iris` data.
+```{r}
+#checking the number of observations and variables
+dim(iris)
+
+#checking the structure of the data
+str(iris)
+
+#checking the first 6 observations
+head(iris)
+
+#checking the last 6 observations
+tail(iris)
+
+#checking if there are any missing values
+any(is.na(iris))
+```
+
+Generating a table of the labeled clusters. 
+```{r}
+table(df$Species)
+```
+
+So, there are 3 clusters: `setosa`, `versicolor`, and `virginica`. 
+
+Finally, one last thing to mention is that, since clustering is based on distance, the variables in the dataset should be standardized. This means that all the variables have a $\mu = 0$ and $\sigma = 1$. This can be achieved in `R` using the `scale()` function. The `iris` dataset does not need to be standardized since all of the variables are measured in the same units. Below is an example. 
+```{r}
+scale(x = df[, -5])
+```
+
+-----
+
+# Coding the algorithm 
+
+Instead of coding the entire algorithm at once into a function, it will be broken down into 2 smaller sections, one where we compute the distance matrix, which is what is required as an input for hierarchical clustering, and then the algorithm itself. 
+
+## Distance matrix
+
+The first step of the algorithm is computing the distance matrix. The distance matrix is a square n x n matrix containing the distances between all pairs of observations. Along the diagonal, there are 0s (similar to a covariance matrix) since the distance of an observation from itself is 0. 
+
+As state before, the most popular metric for distance between observations is Euclidean distance, so it is used here to calculate the distance matrix for the observations in the `iris` data. 
+
+*Note*: `R` does have a built-in `dist()` function to create distance matrices. However, it will only be used to double check results.
+```{r}
+#making a distance matrix using the dist() function to double check results later
+dist_check <- round(as.matrix(dist(x = df[, -5], method = "euclidean")), digits = 2)
+
+#making a function to calculate the euclidean distance between all pairs of observations 
+dist_mat <- function(df){
+  
+  #getting the number of observations
+  n <- nrow(df)
+  
+  #converting the data frame into a matrix
+  mat <- as.matrix(df)
+
+  #creating a storage for the output of the for loop
+  mat_out <- matrix(data = 0, nrow = n, ncol = n)
+  
+  #creating a double for loop to calculate the euclidean distances between all pairs of observations
+    for (i in 1:n){ 
+      for (j in 1:n){ 
+        mat_out[i,j] <- round(sqrt(sum((mat[i,] - mat[j,])^2)), digits = 2)
+    }
+  }
+  
+  #printing the output
+  return(mat_out)
+}
+
+#double checking to make the sure function runs
+dist_calc <- dist_mat(df = df[, -5])
+
+#checking the if 2 matrices have the same output - first we need to coerce the dist_check into a proper R matrix so that the structures of the 2 matrices are exactly the same
+identical(matrix(data = c(dist_check), nrow = 15, ncol = 15, byrow = T), dist_calc)
+```
+
+Our output matches the output of the `dist()` function in `R`.
+
+## Hierarchical clustering algorithm function
+
+Now we will make the algorithm into a function since we have successfully calculated the distance matrix. As a reminder, the hierarchical clustering algorithm looks like: 
+
+1. Compute the distance matrix
+
+2. Let each data point be a cluster
+
+3. Repeat: Merge the two closest clusters and update the distance matrix
+
+4. Continue until only a single cluster remains 
+
+Writing the function. 
+```{r}
+hclustScratch <- function(dist){
+  
+  #first some error control
+  if(!is.matrix(dist)){ #the input must be a matrix 
+    stop("The dist input must be a matrix")
+  }
+  if(any(!is.numeric(dist))){ #the matrix must contain numeric values 
+    stop("The dist matrix must contain numeric values")
+  }
+  
+  #setting the diagonal of the distance matrix to infinity so it will not interfere with finding the minimum, since the diagonal is all 0s
+  diag(dist) <- Inf
+  #getting the number of observations
+  nclust <- nrow(dist)
+  #creating a storage matrix to track which indices have been merged
+  groups <- matrix(NA, nrow(dist) - 1, 2)
+  #creating a storage vector for the minimum distance selected at each iteration
+  mindist_stor <- numeric()
+  #initializing j which will be used for marking indices 
+  j <- 1
+  
+  #starting the while loop which will keep iterating until there is only a single cluster remaining
+  while(nclust > 2){
+  
+  #getting the indices of the 2 observations with the smallest euclidean distance
+  group <- sort(as.numeric(which(dist == min(dist), arr.ind = T)[1,]))
+  #tracking the indices of the observations with the lowest distance between them
+  groups[j,] <- group
+  #getting a numeric value for the minimum distance
+  mindist <- dist[group[1], group[2]]
+  #storing the minimum distance in the storage vector
+  mindist_stor[j] <- mindist
+  #creating a sequence from 1 to the number of rows in the distance matrix but with the 2 indices that had the smallest distance omitted
+  seqal<- (1:nrow(dist))[!(1:nrow(dist)) %in% group]
+  #creating a storage vector for the new distances (which will be updated using single linkage between the cluster and original observations)
+  newdists <- c()
+  
+  #now to run a for loop over the indices which have not been removed from the distance matrix to update the distance matrix because a cluster has been formed 
+  #that is, the distances between all of the original observations that have not been removed stay the same, but new distances must be calculated between the observations and the cluster using single linkage in this case 
+  for(i in seqal){
+    #using single linkage to calculate the new distances between the cluster and observations.
+    #in single linkage clustering, the distance between two clusters is determined by a single pair of elements: those two elements (one in each cluster) that are closest to each other, hence why we are using the min() function 
+    val <- min(dist[group[1], i], dist[group[2], i])
+    #storing the minimum distances in the newdists vector 
+    newdists <- append(newdists,val)
+  }
+  
+  #adding infinity on the end of the new distances matrix so the dimensions are correct since the updated matrix is n - 1 and the previous for loop is n - 2 because the indices of the observations are removed 
+  newdists <- c(newdists, Inf)
+  #getting the number of clusters, which will be be n-1 after every update 
+  nclust <- length(newdists)
+  
+  #removing the indices of the observations that have the minimum distance between them while maintaining the object structure with drop = F; this will keep it as a matrix and not drop the dimensions 
+  dist2 <- dist[,-c(group[1],group[2]), drop = F]
+  dist2 <- dist2[-c(group[1],group[2]),, drop = F]
+  
+  #this will create a new storage matrix with the same dimensions as there are clusters; it will contain only infinity so that, after it is filled with new distances, we wont run into issues with finding the minimum or with symmetry 
+  dist3 <- matrix(Inf, nrow = nclust, ncol = nclust)
+  #filling the storage infinity matrix with the original distances between the observations
+  dist3[1:(nclust-1), 1:(nclust-1)] <- dist2
+  #putting the updated distances into the matrix so now we a completely updated distance matrix
+  dist3[nclust, ] <- newdists
+  dist3[, nclust] <- newdists
+  
+  #updating the distance matrix for when it runs again  
+  dist <- dist3
+  #updating j 
+  j <- j + 1
+  
+  }
+  
+  if(nclust > 1){
+  #getting the indices of the 2 observations with the smallest euclidean distance
+  group <- sort(as.numeric(which(dist == min(dist), arr.ind = T)[1,]))
+  #tracking the indices of the observations with the lowest distance between them
+  groups[j,] <- group
+  #getting a numeric value for the minimum distance
+  mindist <- dist[group[1], group[2]]
+  #storing the minimum distance in the storage vector
+  mindist_stor[j] <- mindist
+  }
+  
+  #returning which indices were combined in order 
+  return(list("Groups" = groups, "Height" = mindist_stor))
+}
+```
+
+Now that the function is completed, we can see if our output matches the output from the `hclust()` function.
+```{r}
+#getting the output from our hierarchical clustering code
+hclust_ours <- hclustScratch(dist = dist_calc)
+
+#getting the output from the base R hierarchical clustering function
+hclust_r <- hclust(d = dist(df[, -5]), method = "single")
+
+#comparing the 2 outputs
+hclust_ours$Height
+round(hclust_r$height, digits = 2)
+```
+
+In this case, `height` which is a set of $n-1$ (length of the distance matrix minus 1) values of the criterion (minimum distance between clusters/observations) associated with the clustering method (single linkage) for the particular agglomeration (iteration). As you can see, the output from our function completely matches the output from the base `R` `hclust()` function. So, we were successful in creating a hierarchical clustering algorithm using single linkage from scratch.
+
+Now we will plot a dendrogram using base `R` just to see visually how our dendrogram would look like. A dendrogram will not be made from scratch, as it is outside the scope of this document.
+```{r}
+plot(hclust_r)
+```
+
+-----
+
+# End of document
+
+-----
+
+```{r}
+sessionInfo()
+```
+
