@@ -237,6 +237,8 @@ hclustScratch <- function(dist){
   
   }
   
+  #once the number of clusters gets down to 2 and you remove the indices, there is an error because you cannot update the matrix any further based on the criteria, so the code will break
+  #this is in place to handle that situation as it only runs a part of the code and extracts the relevant indices and distance values
   if(nclust > 1){
   #getting the indices of the 2 observations with the smallest euclidean distance
   group <- sort(as.numeric(which(dist == min(dist), arr.ind = T)[1,]))
