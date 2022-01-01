@@ -251,7 +251,7 @@ The code for gradient descent will look something like this:
 2. Repeat:
     a. Make a prediction on $y$
     b. Calculate cost function
-    c. Get gradient for cost function 
+    c. Get gradient for cost function with respect to the parameters 
     d. Update parameters
 
 First, we will define the cost function and the gradient function. Additionally, we have already defined the sigmoid function, but will do so again here.
