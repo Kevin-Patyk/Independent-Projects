@@ -10,6 +10,10 @@ Some of my interests include:
 * Data Visualization
 * Applied Statistics
 
+# Contents
+
+Each folder contains an `.Rmd` file and a corresponding `R Markdown` HTML file. If there are any images or data associated with the code, they will be in the `Data` and `Images` folders. 
+
 # Independent Projects Repository
 
 This is  repository for my independent projects, i.e. tasks I have completed or am working on outside of work or school and just based of off personal interest.
