@@ -16,7 +16,7 @@ Each folder contains an `.Rmd` file and a corresponding `R Markdown` HTML file. 
 
 # Independent Projects Repository
 
-This is  repository for my independent projects, i.e. tasks I have completed or am working on outside of work or school and just based of off personal interest.
+This is a repository for my independent projects, i.e. tasks I have completed or am working on outside of work or school and just based of off personal interest.
 
 Some things in this repository include:
 
