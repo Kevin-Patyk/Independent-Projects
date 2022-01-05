@@ -145,11 +145,7 @@ The cost function is such that every incorrect prediction (or further away from 
 Unlike linear regression, which has a closed-form solution, an optimization algorithm must be applied in the case of logistic regression. In logistic regression, gradient descent is applied. We cannot use a loss function similar to one we use in linear regression, such as mean squared error (MSE), because our prediction function is non-convex, whereas the natural logarithm of the likelihood function is. If it is non-convex, then the line can be wavy and contain many points of local optima.
 
 <p align="center">
-![](C:/Users/onef0/Desktop/UU/Independent Projects/Logistic Regressiom from Scratch/Log Reg Scratch/Images/Non_Convex.PNG)
-</p>
-
-<p align="center">
-Image credit to [A. Aylin Tokuç](https://www.baeldung.com/cs/gradient-descent-logistic-regression).
+![](C:/Users/onef0/Desktop/UU/Independent Projects/Logistic Regressiom from Scratch/Log Reg Scratch/Images/Non_Convex.PNG){height=350px}
 </p>
 
 The general idea of gradient descent is to tweak parameters $w$ (the slope coefficient) and $b$ (y-intercept) iteratively to minimize the cost function we have outlined. In this document, batch gradient descent is used, meaning that all the training data is taken into consideration to take a single step. 
@@ -158,10 +154,6 @@ Visually, gradient descent looks like:
 
 <p align="center">
 ![](C:/Users/onef0/Desktop/UU/Independent Projects/Logistic Regressiom from Scratch/Log Reg Scratch/Images/Gradient_Descent.PNG){height=350px}
-</p>
-
-<p align="center">
-Image credit to [Saugat Bhattarai](https://saugatbhattarai.com.np/what-is-gradient-descent-in-machine-learning/).
 </p>
 
 A great analogy for gradient descent is given by [Ayush Pant](https://towardsdatascience.com/introduction-to-logistic-regression-66248243c148): "We have to imagine ourselves at the top of a mountain valley and left stranded and blindfolded, our objective is to reach the bottom of the hill. Feeling the slope of the terrain around you is what everyone would do. Well, this action is analogous to calculating the gradient descent, and taking a step is analogous to one iteration of the update to the parameters."
@@ -194,14 +186,10 @@ $$ h_{\theta}(x)=\frac{1}{1+e^{-z}} $$
 
 By iterating over the training samples until convergence, we reach the optimal parameters $\theta$ leading to minimum cost.
 
-All in on simple picture, gradient descent visually looks like (where $J(w)$ is the cost function):
+All in on simple picture, gradient descent (with the derivative/gradient included) visually looks like::
 
 <p align="center">
 ![](C:/Users/onef0/Desktop/UU/Independent Projects/Logistic Regressiom from Scratch/Log Reg Scratch/Images/Gradient_Descent_2.PNG){height=350px}
-</p>
-
-<p align="center">
-Image credit to [Rand Low](https://randlow.github.io/posts/machine-learning/cost-func-gradient-descent-boost/).
 </p>
 
 -----
