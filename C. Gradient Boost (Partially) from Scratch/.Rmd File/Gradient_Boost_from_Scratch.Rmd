@@ -43,6 +43,26 @@ formu
 
 -----
 
+# What is gradient boosting?
+
+Boosting is a method of converting weak learners into strong learners. In boosting, each new tree is a fit on a modified version of the original data set.
+
+Gradient Boosting trains many models in a gradual, additive and sequential manner. It relies on the intuition that the best possible next model, when combined with previous models, minimizes the overall prediction error.
+
+The basic steps in gradient boost look like: 
+
+* Fit a decision tree to the data: $F_1(x)=y$ 
+
+* We then fit the next decision tree to the residuals of the previous: $h_1(x)=y-F_1(x)$
+
+* Add this new tree to our algorithm: $F_2(x)=F_1(x)+h_1(x)$
+
+* Fit the next decision tree to the residuals of $F_2:h_2(x)=y-F_2(x)$
+
+* Add this new tree to our algorithm: $F_3(x) = F_2(x)+h_1(x)$
+
+* Continue this process until some mechanism (i.e. cross validation) tells us to stop.
+
 # Coding the algorithm
 
 For boosting, we need some sort of base prediction. For this base prediction, we will use the mean of the `mpg` variable, which is the outcome variable. 
