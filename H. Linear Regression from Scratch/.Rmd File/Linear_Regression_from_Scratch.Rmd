@@ -17,23 +17,11 @@ In order to find the line of best fit, we need to construct the linear regressio
 
 The formula for the estimate of the slope is: 
 
-<p align="center">
-![](/Users/onef0/Desktop/Pictures/OLS1.jpg){height=350px}
-</p>
-
-<p align="center">
-Image credit to [Alpharithms.com](https://www.alpharithms.com/simple-linear-regression-modeling-502111/).
-</p>
+$$\hat{\beta_1} = \frac{\sum(y_i-\bar{y})(x_i-\bar{x})}{\sum(x_i-\bar{x})}$$
 
 The formula for the estimate of the intercept is:
 
-<p align="center">
-![](/Users/onef0/Desktop/Pictures/OLS2.jpg){height=350px}
-</p>
-
-<p align="center">
-Image credit to [Alpharithms.com](https://www.alpharithms.com/simple-linear-regression-modeling-502111/).
-</p>
+$$\hat{\beta_0}=\bar{y}-\hat{\beta_1\bar{x}}$$
 
 First, we will prepare data so that we can do our calculations. We will be using the `iris` data which is with in `R` by default. For simplicity, we will be using `Petal.Length` as our `y` (outcome) `Petal.Width` as our `x` (predictor).
 ```{r}
