@@ -9,15 +9,13 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE, fig.align = 'center')
 ```
 
-**Note: This is not my original work. I followed this [guide](https://anderfernandez.com/en/blog/code-knn-in-r/).**
-
 # Introduction
 
 The idea behind the kNN algorithm is very simple: I save the training data table and when new data arrives, I find the k closest neighbors (observations), and I make the prediction based on the observations that are close to the new one. After all, you would expect that observations close to the new observation will have similar target values.
 
 As you can see, here we see a big difference with respect to most supervised algorithms and that is that kNN is a non-parametric algorithm. In other words, while for most algorithms you need to find some parameters (such as beta in linear and logistic regression or W in neural nets), in the case of kNN you don’t have to find any value. Thus, kNN algorithm is not trained.
 
-Moreover, the key to the kNN algorithm that we code program in R is based on three key aspects that we must know:
+Moreover, the key to the kNN algorithm that we code program in `R` is based on three key aspects that we must know:
 
 * Know the different distance measures that exist, how they work and when to use each of the measures.
 * Understand how to choose the number of k neighbors to observe.
@@ -37,7 +35,7 @@ This formula will work regardless of the number of variables there are and can b
 
 Euclidean distance is the straight line distance between 2 data points in a plane.
 
-So, since the Euclidean distance is one of the possible distance measures that the kNN algorithm can use, let’s code the Euclidean distance in R.
+So, since the Euclidean distance is one of the possible distance measures that the kNN algorithm can use, let’s code the Euclidean distance in `R`.
 
 The formula used is: 
 
@@ -81,14 +79,13 @@ manhattan_distance(1:10, 11:20)
 
 The cosine similarity measures the angle between two vectors, so that we know whether or not they point in the same direction. 
 
-Cosine similarity is the cosine of the angle between two n-dimensional vectors in an n-dimensional space.
+Cosine similarity is the cosine of the angle between two n-dimensional vectors in an $n$-dimensional space.
 
 The cosine similarity formula is calculated with the following formula:
 
 $$ similary = cos(\theta) = \frac {\Sigma_{i = 1}^{n} A_iB_i} {\sqrt{\Sigma_{i = 1}^{n} A_i^2} {\sqrt{\Sigma_{i = 1}^{n} B_i^2}}} $$
 
-However, in our case, we do not want to measure the similarity, but rather the distance. The cosine similarity will be 1 when the angle between two vectors is 0, that is, they point in the same direction. In this case, the distance should be 0. Therefore, to obtain the distance based on the similarity of the cosine, we simply have to subtract the similarity from 1.
-
+However, in our case, we do not want to measure the similarity, but rather the distance. The cosine similarity will be $1$ when the angle between two vectors is $0$, that is, they point in the same direction. In this case, the distance should be $0$. Therefore, to obtain the distance based on the similarity of the cosine, we simply have to subtract the similarity from $1$.
 ```{r}
 cosine_similarity <- function(a, b){
   if(length(a) == length(b)){
@@ -112,9 +109,9 @@ Jaccard’s coefficient measures the degree of similarity between two vectors, g
 The Jaccard coefficient can be calculated as follows:
 
 $$ J(A,B) = \frac{|A \cap B|} {|A \cup B|} $$
-As a reminder, the union of two sets A and B (U) is defined as the set of elements that belong to either A or B, or possibly both. 
+As a reminder, the union of two sets $A$ and $B$ $(U)$ is defined as the set of elements that belong to either $A$ or $B$, or possibly both. 
 $$ \cup $$
-The intersection of two sets A and B is defined as the set of elements that belong to both A and B.
+The intersection of two sets A and B is defined as the set of elements that belong to both $A$ and $B$.
 $$ \cap $$
 ```{r}
 jaccard <- function(a, b){
@@ -132,7 +129,7 @@ jaccard(1:10, 11:20)
 
 ## Minkowski distance
 
-The Minkowski distance is a type of distance that generalizes the Euclidean and Manhattan distances. Basically, the Minkowski distance is a distance that requires a p parameter, when p = 2 we get the Euclidean distance, and if p = 1 we get the Manhattan distance.
+The Minkowski distance is a type of distance that generalizes the Euclidean and Manhattan distances. Basically, the Minkowski distance is a distance that requires a $p$ parameter, when $p = 2$ we get the Euclidean distance, and if $p = 1$ we get the Manhattan distance.
 
 The formula is:
 
@@ -154,7 +151,7 @@ minkowski_distance(1:10, 11:20, 1)
 minkowski_distance(1:10, 11:20, 2)
 ```
 
-As we can see, the results for p = 1 we get the Manhattan distance and with p = 2 they we get the Euclidean distance.
+As we can see, the results for $p = 1$ we get the Manhattan distance and with $p = 2$ they we get the Euclidean distance.
 
 ## When to use each type of distance
 
@@ -178,13 +175,13 @@ We are going to code a function that, given a measure of distance and a series o
 
 Steps for finding KNN:
 
-* Determine the value of k = number of nearest neighbors to be considered.
+* Determine the value of $k$ = number of nearest neighbors to be considered.
 
 * Calculate the distance (Euclidean is the most popular implementation to work by hand) between the query instance and all the training samples.
 
-* Sort the distance and determine nearest neighbors based on the k-th minimum distance.
+* Sort the distance and determine nearest neighbors based on the $k$-th minimum distance.
 
-* Gather the category/class labels of the k nearest neighbors.
+* Gather the category/class labels of the $k$ nearest neighbors.
 
 * Use simple majority of the category of nearest neighbors as the prediction label of the query instance
 
@@ -213,11 +210,17 @@ step3
 
 step4 <- sqrt(sum((x[1, 1:4] - y[ ,1:4])^2)) #taking the square root to obtain the distance 
 step4
+
+#with a for loop, it would look something like this
+dist2 <- numeric()
+for(i in 1:nrow(x)){
+  dist2[i] <- sqrt(sum((y[, 1:4] - x[i, -5])^2)) 
+}
 ```
 
 By hand the above calculation would look something like this (where `y` is the sample we want to classify and `x` is the training data): 
 
-*NOTE:* The columns in the `iris` dataset are: `Sepal.Length`, `Sepal.Width`, `Petal.Length` `Petal.Width`, `Species`. However, we will not be using species since it is the outcome of interest. Additionally, even if it was not our outcome of interest, it would have to be transformed into a numeric variable first. 
+*NOTE:* The columns in the `iris` dataset are: `Sepal.Length`, `Sepal.Width`, `Petal.Length` `Petal.Width`, `Species`. However, we will not be using `Species` since it is the outcome of interest. Additionally, even if it was not our outcome of interest, it would have to be transformed into a numeric variable first. 
 
 $$ \small distance = \sqrt {(Sep.Leng_y - Sep.Leng_x)^2 + (Sepal.Wid_y - Sepal.Wid_x)^2 + (Pet.Leng_y - Pet.Leng_x)^2 + (Pet.Width_y - Pet.Width_x)^2} $$
 Moving on to selecting the k nearest distances.
@@ -272,7 +275,7 @@ ind <- nearest_neighbors(x[, 1:4], obs[, 1:4], 4, euclidean_distance)[[1]]
 x[ind, 1:4]
 ```
 
-As we can see, we already know how to find the k nearest neighbors. Now, we will move onto prediction.
+As we can see, we already know how to find the $k$ nearest neighbors. Now, we will move onto prediction.
 
 -----
 
@@ -282,11 +285,11 @@ The kNN algorithm is used for classification and regression problems. Obviously,
 
 ## Prediction in a classification problem 
 
-In the case of classification problems, the kNN algorithm is based on finding the mode of the variable, as if it were a voting system. Following our case, if most of our neighbors are Iris Setosa, the algorithm’s prediction will be Iris Setosa.
+In the case of classification problems, the kNN algorithm is based on finding the mode of the variable, as if it were a voting system. Following our case, if most of our neighbors are `Iris` `Setosa`, the algorithm’s prediction will be `Iris` `Setosa`.
 
 However, this has a problem, and that is, what happens if there are two (or more) classes with the same number of votes? In that case, there would be no predominant value, so this method would not work.
 
-In those cases, the algorithm increases the k by 1, that is, it adds a new neighbor that will (probably) tiebreak. If it doesn’t, we would continue increasing k by 1, until we get a tiebreak.
+In those cases, the algorithm increases the $k$ by $1$, that is, it adds a new neighbor that will (probably) tiebreak. If it doesn’t, we would continue increasing $k$ by $1$, until we get a tiebreak.
 
 Considering this, let’s create the prediction function for the case of categorical data:
 ```{r}
@@ -312,7 +315,7 @@ We still haven’t fixed the problem that there are two classes with the same nu
 In the case of the kNN algorithm for regressions, we can choose two approaches:
 
 * Make the prediction based on the mean, as is done in the case of decision trees.
-* Make the prediction based on a weighted average that has takem into account the distance of the rest of the observations with respect to target, in such a way that those observations that are closer have more weight than those that are further away.
+* Make the prediction based on a weighted average that has take into account the distance of the rest of the observations with respect to target, in such a way that those observations that are closer have more weight than those that are further away.
 
 There are different ways to calculate the weighted average, although the most common is to weight based on the inverse of distances.
 
@@ -320,7 +323,6 @@ So, let’s modify the prediction function above so that:
 
 * Take into account the type of variable on which the prediction is made.
 * In case of a regression, accept that the prediction is made by both a simple mean and a weighted mean.
-
 ```{r}
 #this function will take inputs x, the training data, y, the outcome variable of interest, weights, which is null by default 
 knn_prediction <- function(x, y, weights = NULL){
@@ -358,14 +360,13 @@ knn_prediction(x = x[ind,], y = 'Species')
 
 -----
 
-# Finishing coding the kNN algorithm from 0 in R
+# Finishing coding the kNN algorithm from $0$ in `R`
 
 In order to finish programming our kNN algorithm in `R`, we must take into account how this algorithm is used. In general, the prediction is not usually made on one observation, but on several at the same time. Therefore, we will have to allow our algorithm to receive several observations on which to predict and to return a vector of predictions.
 
 Also, we are going to program another question that we have previously left in the pipeline, and that is when the prediction is made in a classification problem, there is no single class with more votes than the others, but there is a tie between two or more classes.
 
-As we have the algorithm programmed, solving that is very simple if we apply recursion. So when you get a prediction you just have to check the number of response classes. If it is higher than one, for that same observation you call the algorithm again, but with a higher k.
-
+As we have the algorithm programmed, solving that is very simple if we apply recursion. So when you get a prediction you just have to check the number of response classes. If it is higher than one, for that same observation you call the algorithm again, but with a higher $k$.
 ```{r}
 #now we will make the full knn function, where x_fit is the training data, x_pred has the observations we want to predict, func is the distance function, which by default is euclidean, weighted_pred determines whether or not we use weights for a numeric outcome, and p is for minkowski distance, which is null by default 
 knn <- function(x_fit, x_pred, y, k, 
