@@ -126,15 +126,19 @@ $$ h_{\theta}(x)= p = \frac{1}{1+e^{-z}} $$
 
 In statistics, maximum likelihood estimation is widely used to obtain the parameters for a distribution given a set of observations. In this paradigm, to maximize log likelihood is equal to minimize the cost function $J$. The cost function $J$ (called the Log Loss) is outlined below:
 
-$$ J(\theta)=-\frac{1}{m} \sum_{i=1}^{m}\left[y^{(i)} \log \left(h_{\theta}\left(x^{(i)}\right)\right)+\left(1-y^{(i)}\right) \log \left(1-h_{\theta}\left(x^{(i)}\right)\right)\right] $$
+$$ J(\theta)=-\frac{1}{m} \sum_{i=1}^{m}\left[y_i \log \left(h_{\theta}\left(x_i\right)\right)+\left(1-y_i\right) \log \left(1-h_{\theta}\left(x_i\right)\right)\right] $$
 
 Where $m$ is the number of observations and
 
 $$ h_{\theta}(x)=\frac{1}{1+e^{-x}} $$
 
-In other words, this is the cost the algorithm pays if it predicts a value $h_{\theta}(x)$ while the actual label turns out to be $y$. 
+This formula is is the negative average of the log of corrected predicted probabilities for each instance. In other words, this is the cost the algorithm pays if it predicts a value $h_{\theta}(x)$ while the actual label turns out to be $y$. 
 
-Multiplying by $h_{\theta}(x^{(i)})$ and $1−h_{\theta}(x^{(i)})$ in the above equation is a sneaky trick that lets us use the same equation to solve for both $y=1$ and $y=0$ cases. If $y=0$, the first side cancels out. If $y=1$, the second side cancels out. In both cases we only perform the operation we need to perform.
+Multiplying by $h_{\theta}(x_i)$ and $1−h_{\theta}(x_i)$ in the above equation is a sneaky trick that lets us use the same equation to solve for both $y=1$ and $y=0$ cases. If $y=0$, the first side cancels out. If $y=1$, the second side cancels out. In both cases we only perform the operation we need to perform. In more detail:
+
+* When the actual class is $1$, the second term in the formula would be $0$ and we will be left with first term $y_ilog(h_{\theta}(x_i))$ and $(1-1)log(1-(h_{\theta}(x_i))$ will be $0$.
+
+* When the actual class is $0$, the first term in the formula would be $0$ and we will be left with second term $(1-0)log(1-(h_{\theta}(x_i))$ and $y_ilog(h_{\theta}(x_i))$ this will be $0$.
 
 The cost function is such that every incorrect prediction (or further away from the real value) will increase its value.
 
@@ -169,7 +173,7 @@ Furthermore, we need to update each parameter simultaneously for each iteration.
 To complete the algorithm, we need the value of $\frac{\partial}{\partial \theta_j} J(\theta)$ (this is the gradient of the cost function). The gradient of the cost function tells us the slope of the line tangent to the cost function and will tell us in which direction we need to move to find the minimum. The equation is: 
 
 $$
-\frac{\partial}{\partial \theta_{j}} J(\theta)=\frac{1}{m} \sum_{i=1}^{m}\left(h_{\theta}\left(x^{(i)}\right)-y^{(i)}\right) x_{j}^{(i)}
+\frac{\partial}{\partial \theta_{j}} J(\theta)=\frac{1}{m} \sum_{i=1}^{m}\left(h_{\theta}\left(x_i\right)-y_i\right) x_{j}^{(i)}
 $$
 
 Where:
@@ -178,7 +182,7 @@ $$ h_{\theta}(x)=\frac{1}{1+e^{-z}} $$
 
 Plugging this into the gradient descent function leads to the update rule:
 
-$$ \theta_{j} \leftarrow \theta_{j}-\alpha \frac{1}{m} \sum_{i=1}^{m}\left(h_{\theta}\left(x^{(i)}\right)-y^{(i)}\right) x_{j}^{(i)} $$
+$$ \theta_{j} \leftarrow \theta_{j}-\alpha \frac{1}{m} \sum_{i=1}^{m}\left(h_{\theta}\left(x_i\right)-y_i\right) x_{j}^{(i)} $$
 
 Where:
 
