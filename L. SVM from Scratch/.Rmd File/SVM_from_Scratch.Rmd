@@ -1,0 +1,702 @@
+---
+title: "SVM from Scratch"
+author: "Kevin Patyk"
+date: "1/3/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = 'center')
+```
+
+# Introduction
+
+Support vector machines (SVM) is an algorithm that can be used for both regression and classification tasks. However, it is more commonly used in classification problems. The objective of the support vector machine algorithm is to find a hyperplane in an N-dimensional space (N being the number of features) that distinctly separates the data points.
+
+There are numerous different hyperplanes (also called a decision surface) that might be used to split the two classes of data points in an N-dimensional space. An SVM's goal is to find a hyperplane with the greatest margin, or the greatest distance between data points from both classes. Maximizing the margin provides some reinforcement so that future data points can be classified with more confidence.
+
+<p align="center">
+![](C:/Users/onef0/Desktop/UU/Independent Projects/SVM from Scratch/SVM from Scratch/Images/Maximum_Margin.PNG){height=350px}
+</p>
+
+Hyperplanes are decision boundaries that aid in data classification. Different classes can be assigned to data points on either side of the hyperplane. The hyperplane's dimension is determined by the number of features. If there are only two input characteristics, the hyperplane is merely a line. The hyperplane becomes a two-dimensional plane when the number of input features reaches three. When the number of features exceeds three, it becomes difficult to imagine.
+
+<p align="center">
+![](C:/Users/onef0/Desktop/UU/Independent Projects/SVM from Scratch/SVM from Scratch/Images/Hyperplanes.PNG)
+</p>
+
+<p align="center">
+Image credit to [Rohith Gandhi](https://towardsdatascience.com/support-vector-machine-introduction-to-machine-learning-algorithms-934a444fca47).
+</p>
+
+Support vectors are data points that are closer to the hyperplane and have an influence on the hyperplane's position and orientation. We maximize the classifier's margin by using these support vectors. The hyperplane's position will be altered if the support vectors are removed. These are the points that will assist us in constructing our SVM. They are the data points most difficult to classify and have direct bearing on the optimum location of the decision surface.
+
+<p align="center">
+![](C:/Users/onef0/Desktop/UU/Independent Projects/SVM from Scratch/SVM from Scratch/Images/Support_Vector.PNG){height=350px}
+</p>
+
+Margins play an important role in SVMs. In SVMS, either data are linearly separable, or the separating hyperplane is non-linear. This results in SVMs having 2 types of margins, either hard or soft. We utilize SVM with a hard margin when the data is linearly separable and we don't want any misclassifications. When a linear boundary isn't possible, or when we wish to allow for certain misclassifications in the hopes of improving generality, we can use a soft margin for our classifier.
+
+In other words, the separability of the data is the difference between a hard and a soft margin in SVMs. We use a hard margin if our data is linearly separable. It will not be possible to do so if the data is not linearly separated. We would have to be more tolerant in the presence of data points that make finding a linear classifier impossible, and allow some of the data points to be misclassified. A soft margin SVM is appropriate in this scenario.
+
+The data may be linearly separable in certain cases, but the margin can be so small that the model is prone to overfitting or being overly sensitive to outliers. By selecting a soft margin, we can obtain a larger margin in this scenario. Typically, soft margins are more frequently used since data in the real world isn't perfectly separated. 
+
+<p align="center">
+![](C:/Users/onef0/Desktop/UU/Independent Projects/SVM from Scratch/SVM from Scratch/Images/Margins.PNG){height=350px}
+</p>
+
+Lastly, SVMs can be linear or non-linear. If an SVM is linear, then the 2 classes/groups can be separated by a straight line. If an SVM is not linear, it cannot be separated by a straight line. Both linear SVMs and non-linear SVMs require different calculations, but they will be discussed later. Lastly, this document mainly focuses on coding a linear SVM and only the theory of non-linear SVMs will be discussed. 
+
+<p align="center">
+![](C:/Users/onef0/Desktop/UU/Independent Projects/SVM from Scratch/SVM from Scratch/Images/Linear_SVM.PNG){height=350px}
+</p>
+
+-----
+
+# Linear SVMs
+
+
+## Loss function for hard & soft margins  
+
+We will now move into the mathematical formulation for linear SVMs. In this case, we are going to be focusing on the soft margin case and associated formulas since the hard margin case is very rarely applicable in the real world. We will first go over the basic concept which applies to a hard margin and then make the transition into a short margin. 
+
+We are given a training dataset of $n$ points of the form:
+
+$$(x_1, y_1),...,(x_n, y_n)$$
+
+Where the $y_i$ are either $1$ or $-1$, each indicating the class to which the point $x_i$ belongs. 
+
+Each $x_i$ is a $p$-dimensional a real vector (a vector who has real numbers as the elements). We want to find the maximum-margin hyperplane that divides the group of points $x_i$ for which $y_i=1$ from the group of points which $y_i = -1$, which is defined so that the distance between the hyperplane and the nearest point $x_i$ from either group is maximized.
+
+A hyperplane is a higher-dimensional generalization of lines and planes. The equation of a hyperplane is: 
+
+$$w^Tx-b=0$$
+
+Here, $w$ is the normal vector (a vector that is perpendicular) to the hyperplane, $b$ is an offset (intercept), $\frac{b}{||w||}$ determines the offset of the hyperplane from the origin, and $||w||$ is the magnitude (length) of vector $w$. 
+
+If the training data is linearly separable, we can select two parallel hyperplanes that separate the two classes of data, so that the distance between them is as large as possible. The region bounded by these two hyperplanes is called the "margin", and the maximum-margin hyperplane is the hyperplane that lies halfway between them. With a normalized or standardized dataset, these hyperplanes can be described by the equations: 
+
+$$ w^Tx - b = 1$$
+
+<p align="center">
+(anything on or above this boundary is of one class, with label $1$)
+</p>
+
+$$ w^Tx - b = -1$$ 
+
+<p align="center">
+(anything on or below this boundary is of the other class, with label $-1$)
+</p>
+
+Geometrically, the distance between these 2 hyperplanes outlined above is $\frac{2}{||w||}$, so to maximize the distance between the planes we want to minimize the denominator $||w||$; this is computed using the distance from a point to a plane equation.
+
+Below is a helpful image to sum everything up. 
+
+<p align="center">
+![](C:/Users/onef0/Desktop/UU/Independent Projects/SVM from Scratch/SVM from Scratch/Images/SVM_with_Equations.PNG){height=450px}
+</p>
+
+Finally, since we want anything above the boundary margin to be $=1$ and anything below the bottom boundary to be $=-1$,  we apply the following constraints which state that each data point must lie on the correct side of the margin. 
+
+$$ w^{T} x_{i}-b \geq 1, \text { if } y_{i}=1 $$
+
+or
+
+$$ w^{T} x_{i}-b \leq -1, \text { if } y_{i}=-1 $$
+
+This can be rewritten into one equation as:
+
+$$ y_i(w^{T} x_{i}-b) \geq 1, \text { for all } 1 \leq i \leq n $$
+
+If we put this together and were going to use a hard margin classifier, we would have the optimization problem: 
+
+$\text {Minimize }||w|| \text { subject to } y_i(w^Tx_i-b)\geq 1 \text { for } i=1,...,n$
+
+An optimization technique to determine the $w$ and $b$ together which solve this problem determine our classifier.
+
+However, to extend SVM to cases where we will be using the soft margin, the hinge loss function is helpful, which is defined as:
+
+$max(0,1-y_i(w^Tx_i-b))$
+
+Where $y_i$ is the $i$-th target ($1$ or $-1$) and $w^Tx_i-b$ is the $i \text {-th}$ output. 
+
+This function will return $0$ if $x_i$ lies on the correct side of the margin. For data on the wrong side of the margin, the function's value is proportional to the distance from the margin. So, we want this to be as low as possible to minimize the loss. Lastly, points that are inside of the margin will take on a value between 0 and 1, even if they are correctly classified. 
+
+Written in equation form and keeping the previous constraint in mind:  
+
+$$
+l=\left\{\begin{array}{ll}
+0 & \text { if } y \cdot f(x) \geq 1 \\
+1-y \cdot f(x) & \text { otherwise }
+\end{array}\right.
+$$
+
+Where:
+
+$$ f(x) = (w^{T} x_{i}-b)$$
+
+This basically says that, if the point is correctly classified, the loss will be 0, otherwise the further away a misclassified observation is from our decision boundary, the higher the value of the loss will be. 
+
+Taking the above into consideration, the goal of the optimization then is to minimize:
+
+$$ \lambda\|w\|^{2}+\left[\frac{1}{n} \sum_{i=1}^{n} \max \left(0,1-y_{i}\left(w^{T} x_{i}-b\right)\right)\right] $$
+
+Where the parameter $\lambda>0$ determines the trade-off between increasing the margin size and ensuring that the $x_i$ lie on the correct side of the margin. 
+
+This equation means we want to pick a $w$ (vector of weights) and $b$ (intercept) such that we minimize the sum of the two terms. The first term ($\lambda||w||^2$) is there so that we can still maximize the margin (reularization term). $\lambda$ is a positive number that allows us to tune how much we care about these things relatively. Do we care a lot about maximizing the margin or for allowing misclassification errors?. The second term is summing the loss of all of our observations $1$ to $n$ and then dividing by $n$ (the empirical term). This will give us the average hinge loss of a classifier across the entire training set. We want this to be as small as possible. 
+
+Taking the previous constraint into account, the loss function can be written as:
+
+if $y_{i} \cdot f(x) \geq 1:$ (the observation is correctly classified and the loss is $0$)
+$$
+J_{i}=\lambda\|w\|^{2}
+$$
+else: (the observation is not correctly classified and the loss is $>0$)
+$$
+J_{i}=\lambda\|w\|^{2}+1-y_{i}\left(w \cdot x_{i}-b\right)
+$$
+
+Minimizing this loss function is applicable to both hard margins and soft margins. Besides the fact that we never really encounter perfectly linearly separable data in the real world, if we set a sufficiently small value for $\lambda$, it will yield the hard-margin classifier for linearly classifiable input data. Thus, we can minimize this function for both soft and hard margins. Very handy!
+
+So, how do we actually minimize the loss function?
+
+## (Sub) gradient descent
+
+Our cost function is a convex function, meaning that, whenever we find a local minimum value of the function, it is also a global minimum. A convex function has at most one local minimum, while a non-convex function may have more than one. The function being convex means there aren't "hills and valleys" such that you could find a local minimum (valley) but need to worry about a global minimum that is up over some hill near that minimum. The loss function being convex provides us with optimization techniques that find a global minimum. 
+
+A non-convex function:
+
+<p align="center">
+![](C:/Users/onef0/Desktop/UU/Independent Projects/SVM from Scratch/SVM from Scratch/Images/Non_Convex.PNG){height=350px}
+</p>
+
+A convex function:
+
+<p align="center">
+![](C:/Users/onef0/Desktop/UU/Independent Projects/SVM from Scratch/SVM from Scratch/Images/Convex.PNG){height=350px}
+</p>
+
+Since our function is convex, we can use gradient descent to optimize the loss function (find a global minimum). Gradient descent is an optimization algorithm used to minimize some cost function by iteratively moving in the direction of steepest descent as defined by the negative of the gradient. 
+
+In gradient descent, you start by defining the initial values for the parameters and from there gradient descent uses calculus to iteratively adjust the values so they minimize the given cost-function.
+
+The change in all parameters in relation to the change in error is measured by a gradient. A gradient is also known as the slope of a function. The steeper the slope and the faster a model can learn, the higher the gradient. If the slope is zero, however, the model will stop learning. A gradient is a partial derivative with regard to the parameter in mathematics.
+
+In a simplified form, the steps of gradient descent are: 
+
+1. Take the derivative of the loss function with respect to each parameter in it (take the gradient of the loss function).
+
+2. Pick random values for the parameters to initialize them. 
+
+3. Plug the parameter values into the partial derivatives with respect to those parameters (the gradient).
+
+4. Calculate the step size: 
+
+$\text {Step Size} = \text { Slope (The partial derivative evaluated at the parameter values specified)} \cdot \text {Learning Rate}$
+
+5. Calculate the new parameters: 
+
+$\text {New Parameter} = \text {Old Parameter – Step Size}$
+
+6. Go back to step 3 and repeat until step size is very small or you reach the maximum number of steps. 
+
+
+Visually, gradient descent looks like: 
+
+<p align="center">
+![](C:/Users/onef0/Desktop/UU/Independent Projects/SVM from Scratch/SVM from Scratch/Images/Gradient_Descent_2.PNG){height=350px}
+</p>
+
+Since the cost function for an SVM is already outlined above, we need to take the partial derivatives with respect to $w$ and $b$. 
+
+The gradient with respect to $w$ and $b$ following the constraint we outlined is: 
+
+if $y_{i} \cdot f(x) \geq 1:$
+$$\frac{d J_{i}}{d w_{k}}=2 \lambda w_{k}$$
+$$\frac{d J_{i}}{d b}=0$$
+
+else:
+$$
+\frac{d J_{i}}{d w_{k}}=2 \lambda w_{k}-y_{i} \cdot x_{i}
+$$
+$$
+\frac{d J_{i}}{d b}=y_{i}
+$$
+
+Now that we have our gradients, we can use the update rules:
+
+$$ w = w - \alpha \cdot dw $$
+
+This is $\text {new weight} = \text {old weight} - \text {learning rate} \cdot \text{derivative with respect to w}$.
+
+and
+
+$$ b = b - \alpha \cdot db $$
+
+This is $\text {new intercept} = \text {old intercept} - \text {learning rate} \cdot \text{derivative with respect to b}$.
+
+-----
+
+# Coding linear SVM in `R`
+
+Prior to coding the SVM algorithm, we will load a package that will be used to double check our results and we will create a data set that will be used to test the algorithm.
+```{r warning=FALSE, message=FALSE}
+library(e1071)
+library(tidyverse)
+library(mvtnorm)
+library(dplyr)
+```
+
+The data set that we will be using is going to be simulated using the `mvtnorm` package. We will make 2 clusters of data that are linearly separable. This data will be exported and put in the `Data` folder. 
+```{r}
+#setting the seed
+set.seed(123)
+
+#creating the function to simulate the data 
+generateGaussianData <- function(n, center, sigma, label) {
+  data = rmvnorm(n, mean = center, sigma = sigma)
+  data = data.frame(data)
+  names(data) = c("x", "y")
+  data = data %>% mutate(class=factor(label))
+  data
+}
+
+#making the data
+dataset1 <- {
+  # cluster 1
+  n = 500
+  center = c(5, 5)
+  sigma = matrix(c(1, 0, 0, 1), nrow = 2)
+  data1 = generateGaussianData(n, center, sigma, 1)
+  # cluster 2
+  n = 500
+  center = c(1, 1)
+  sigma = matrix(c(1, 0, 0, 1), nrow = 2)
+  data2 = generateGaussianData(n, center, sigma, 2)
+  # all data
+  data = bind_rows(data1, data2)
+  data$dataset = "1 - Mixture of Gaussians"
+  data
+}
+
+#removing one of the columns and converting 1 and 2 to -1 and 1 
+df <- dataset1 %>%
+  select(-dataset) %>%
+  mutate(class = ifelse(class == 1, -1, 1))
+
+#creating the predictor variables and outcome variable 
+x <- df[, c(1,2)]
+y <- df$class
+```
+
+Now, let's code SVM in `R`. As a note, I am implementing several techniques. I have found several differences in the formulations from several difference sources and had a hard time finding the objectively correct formulation, especially when using sub gradient descent, as many other algorithms use the Lagrangian dual problem. Thus, I will do all of them just to be thorough and because they almost all yield similar results. 
+
+This first implementation comes from the calculations provided by [Python Engineer](https://www.python-engineer.com/courses/mlfromscratch/07_svm/). These are the calculations provided in the previous section. 
+```{r}
+#specifying the learning rate
+Learning_Rate <- 0.001
+#specifying the number of iterations
+num_iterations <- 5000
+#specifying lambda, the tuning parameter
+lambda <- 0.01
+  
+#specifying the number of observations
+n <- length(y)
+#specifying the number of features
+n_feat <- ncol(x)
+#scaling the predictor space 
+X <- scale(x)
+#converting y to a matrix
+y <- as.matrix(y)
+#initializing the weights (w) and bias (b) to be 0
+w <- matrix(rep(0, ncol(X)), nrow = ncol(X))
+#initializing the bias (b)
+b <- 0 
+
+#creating the for loop to run sub gradient descent 
+for(j in 1:num_iterations){
+ for(k in 1:n_feat){
+  for(i in 1:n){
+    if(y[i] * (w[k] * X[i, k] - b) >= 1){
+      w[k] <- w[k] - (Learning_Rate * (2 * lambda * w[k]))
+    } else{
+        w[k] <- w[k] - (Learning_Rate * (2 * lambda * w[k] - y[i] * X[i,k])) 
+        b <- b - (Learning_Rate * y[i])
+    }
+  }
+ }
+}
+
+#creating a function to predict the classes
+predSVM <- function(w, b, X){
+  class <- sign((X %*% w) - b)
+  return(class)
+}
+
+#seeing a table of the predicted classes
+table(predSVM(w = w, b = b, X = X))
+
+#plotting the result
+df %>%
+  mutate(fitted = predSVM(w = w, b = b, X = X)) %>%
+  ggplot(aes(x = df$x, y = df$y)) +
+  geom_point(aes(color = as.factor(fitted)))
+```
+
+The accuracy is close to 100%. 
+
+-----
+
+This second formulation comes from [Towards Data Science](https://towardsdatascience.com/support-vector-machine-introduction-to-machine-learning-algorithms-934a444fca47). The difference in this implementation over the previous one is that, in the event of a misclassification we use:
+
+$$ w = w + \alpha \cdot dw $$
+
+rather than
+
+$$ w = w - \alpha \cdot dw $$
+```{r}
+#specifying the learning rate
+Learning_Rate <- 0.001
+#specifying the number of iterations
+num_iterations <- 5000
+#specifying lambda, the tuning parameter
+lambda <- 0.01
+  
+#specifying the number of observations
+n <- length(y)
+#specifying the number of features
+n_feat <- ncol(x)
+#scaling the predictor space 
+X <- scale(x)
+#converting y to a matrix
+y <- as.matrix(y)
+#initializing the weights (w) and bias (b) to be 0
+w <- matrix(rep(0, ncol(X)), nrow = ncol(X))
+#initializing the bias (b)
+b <- 0 
+
+#creating the for loop to run sub gradient descent 
+for(j in 1:num_iterations){
+ for(k in 1:n_feat){
+  for(i in 1:n){
+    if(y[i] * (w[k] * X[i, k] - b) >= 1){
+      w[k] <- w[k] - (Learning_Rate * (2 * lambda * w[k]))
+    } else{
+        w[k] <- w[k] + (Learning_Rate * (2 * lambda * w[k] - y[i] * X[i,k])) 
+        b <- b - (Learning_Rate * y[i])
+    }
+  }
+ }
+}
+
+#creating a function to predict the classes
+predSVM <- function(w, b, X){
+  class <- sign((X %*% w) - b)
+  return(class)
+}
+
+#seeing a table of the predicted classes
+table(predSVM(w = w, b = b, X = X))
+
+#plotting the result
+df %>%
+  mutate(fitted = predSVM(w = w, b = b, X = X)) %>%
+  ggplot(aes(x = df$x, y = df$y)) +
+  geom_point(aes(color = as.factor(fitted)))
+```
+
+The accuracy is close to 100%.  
+
+-----
+
+The next implementation is called Primal Estimated sub-GrAdient SOlver for SVM and was developed by Shalev-Shwartz, et al. (2011). In this formulation, the update rules are as follows:
+
+if $y_{i} \cdot f(x) < 1:$
+
+$$w = (1 - \eta\lambda)w + \eta \cdot y_ix_i$$
+else
+
+$$ w = (1 - \eta\lambda)w$$
+
+where $\eta$ is the learning rate. 
+```{r}
+#specifying the learning rate
+Learning_Rate <- 0.001
+#specifying the number of iterations
+num_iterations <- 5000
+#specifying lambda, the tuning parameter
+lambda <- 0.01
+  
+#specifying the number of observations
+n <- length(y)
+#scaling the predictor space 
+X <- as.data.frame(scale(X))
+#adding a bias (intercept) term to the predictor matrix 
+X$Intercept <- 1
+#rearranging the predictor matrix so the bias comes first
+X <- as.matrix(X[, c(ncol(X), 1:(ncol(X)-1))])
+#specifying the number of features
+n_feat <- ncol(X)
+#converting y to a matrix
+y <- as.matrix(y)
+#initializing the weights (w) and bias (b) to be 0
+w <- matrix(rep(0, ncol(X)), nrow = ncol(X))
+
+#creating the for loop to run sub gradient descent
+for(j in 1:num_iterations){
+for(k in 1:n_feat){
+ for(i in 1:n){
+    if(y[i] * (w[k] * X[i, k]) < 1){
+      w[k] <- (1 - Learning_Rate*lambda)*w[k] + (Learning_Rate*y[i])*X[i, k]
+    } else{
+      w[k] <- (1 - Learning_Rate*lambda)*w[k]
+    }
+  }
+ }
+}
+
+
+#creating a function to predict the classes
+predSVM <- function(w, X){
+  class <- sign((X %*% w))
+  return(class)
+}
+
+#seeing a table of the predicted classes
+table(predSVM(w = w, X = X))
+
+#plotting the result 
+df %>%
+  mutate(fitted = predSVM(w = w, X = X)) %>%
+  ggplot(aes(x = df$x, y = df$y)) +
+  geom_point(aes(color = as.factor(fitted)))
+```
+
+The accuracy is close to 100%. 
+
+-----
+
+This next formulation comes from [David Sontag](https://people.csail.mit.edu/dsontag/courses/ml16/slides/lecture5.pdf). In this formulation, the update rules are:
+
+if $y_{i} \cdot f(x) < 1:$
+
+$$ w = w - \eta(\lambda w \cdot y_ix_i)$$
+
+else
+
+$$ w = w - \eta\lambda w$$
+where $\eta$ is the learning rate. 
+```{r}
+#specifying the learning rate
+Learning_Rate <- 0.001
+#specifying the number of iterations
+num_iterations <- 5000
+#specifying lambda, the tuning parameter
+lambda <- 0.01
+  
+#specifying the number of observations
+n <- length(y)
+#scaling the predictor space 
+X <- as.data.frame(scale(x))
+#adding a bias (intercept) term to the predictor matrix 
+X$Intercept <- 1
+#rearranging the predictor matrix so the bias comes first
+X <- as.matrix(X[, c(ncol(X), 1:(ncol(X)-1))])
+#specifying the number of features
+n_feat <- ncol(X)
+#converting y to a matrix
+y <- as.matrix(y)
+#initializing the weights (w) and bias (b) to be 0
+w <- matrix(rep(0, ncol(X)), nrow = ncol(X))
+
+#creating the for loop to run sub gradient descent
+for(j in 1:num_iterations){
+ for(k in 1:n_feat){
+  for(i in 1:n){
+    if(y[i] * (w[k] * X[i, k]) < 1){
+      w[k] <- w[k] - Learning_Rate*(lambda * w[k] - (y[i] * X[i,k]))
+    } else{
+      w[k] <- w[k] - Learning_Rate * (lambda * w[k])
+    }
+  }
+ }
+}
+
+#creating a function to predict the classes
+predSVM <- function(w, X){
+  class <- sign((X %*% w))
+  return(class)
+}
+
+#seeing a table of the predicted classes 
+table(predSVM(w = w, X = X))
+
+#plotting the result 
+df %>%
+  mutate(fitted = predSVM(w = w, X = X)) %>%
+  ggplot(aes(x = df$x, y = df$y)) +
+  geom_point(aes(color = as.factor(fitted)))
+```
+
+The accuracy is close to 100%. 
+
+-----
+
+The last formulation is provided by another article on [Towards Data Science](https://towardsdatascience.com/solving-svm-stochastic-gradient-descent-and-hinge-loss-8e8b4dd91f5b). In this formulation, the update rules are as follows:
+
+if $1-y_i(wx_i) \leq 0$
+
+$$gradient  = w$$ 
+
+else 
+
+$$ gradient = w - \lambda \cdot y_ix_i $$
+
+Then, the update rule is
+
+$$ w = w - \eta \cdot gradient$$
+
+where $\eta$ is the learning rate.
+```{r}
+#specifying the learning rate
+Learning_Rate <- 0.001
+#specifying the number of iterations
+num_iterations <- 5000
+#specifying lambda, the tuning parameter
+lambda <- 0.01
+  
+#specifying the number of observations
+n <- length(y)
+#scaling the predictor space 
+X <- as.data.frame(scale(x))
+#adding a bias (intercept) term to the predictor matrix 
+X$Intercept <- 1
+#rearranging the predictor matrix so the bias comes first
+X <- as.matrix(X[, c(ncol(X), 1:(ncol(X)-1))])
+#specifying the number of features
+n_feat <- ncol(X)
+#converting y to a matrix
+y <- as.matrix(y)
+#initializing the weights (w) and bias (b) to be 0
+w <- matrix(rep(0, ncol(X)), nrow = ncol(X))
+
+#creating a for loop for gradient descent  
+for(j in 1:num_iterations){
+ for(k in 1:n_feat){
+  for(i in 1:n){
+    if(1 - (y[i]*(w[k]*X[i, k])) <= 0){
+      w[k] <- w[k] - Learning_Rate * w[k]
+    } else{
+      w[k] <- w[k] - Learning_Rate * (lambda * (y[i] * X[i, k]))
+    }
+  }
+ }
+}
+
+#creating a function to predict class 
+predSVM <- function(w, X){
+  class <- sign((X %*% w))
+  return(class)
+}
+
+#seeing a table of the predicted classes 
+table(predSVM(w = w, X = X))  
+
+#plotting the result
+df %>%
+  mutate(fitted = predSVM(w = w, X = X)) %>%
+  ggplot(aes(x = df$x, y = df$y)) +
+  geom_point(aes(color = as.factor(fitted)))
+```
+
+The accuracy is close to 100%. 
+
+Thus, 5 different algorithms for a linear SVM were implemented since I found different formulations. All of them performed similarly and very well. All had an accuracy close to 100%. , but this makes sense and 100% accuracy will usually not happen in practice anyway. 
+
+-----
+
+# Non-linear SVM
+
+In a situation where the data is not linearly separable, different calculations must be used in order to classify observations. 
+
+Recall computing the classifier for SVM: 
+
+$$ \lambda\|w\|^{2}+\left[\frac{1}{n} \sum_{i=1}^{n} \max \left(0,1-y_{i}\left(w^{T} x_{i}-b\right)\right)\right] $$
+
+The technique used above, gradient descent, is only one of the available methods for optimization. Another method is introduced by solving for the Lagrangian dual of the above problem. Then, one obtains the simplified problem (called the dual problem):
+
+Maximize
+
+$$f\left(c_{1} \ldots c_{n}\right)=\sum_{i=1}^{n} c_{i}-\frac{1}{2} \sum_{i=1}^{n} \sum_{j=1}^{n} y_{i} c_{i}\left(\mathbf{x}_{i}^{T} \mathbf{x}_{j}\right) y_{j} c_{j}$$ 
+
+subject to 
+
+$$\sum_{i=1}^{n} c_{i} y_{i}=0$$ 
+
+and 
+
+$$0 \leq c_{i} \leq \frac{1}{2 n \lambda}$$ for all $i$.
+
+Since the dual maximization problem is a quadratic function of the $c_i$ subject to linear constraints, it is solvable by quadratic programming algorithms, such as the sequential minimal optimization (SMO) algorithm. 
+
+Here, the variables $c_i$ are defined such that:
+
+$${\displaystyle  {w} =\sum _{i=1}^{n}c_{i}y_{i}{x} _{i}}$$
+
+Moreover, $c_i=0$ exactly when $x_i$ lies on the correct side of the margin, and $ 0 < c_i < (2n\lambda)^{-1}$ when $x_i$ lies on the margin's boundary. It follows that $w$  can be written as a linear combination of the support vectors.
+
+The offset, $b$, can be recovered by finding an $x_i$ on the margin's boundary and solving:
+
+$$ y_{i}\left(\mathbf{w}^{T} \mathbf{x}_{i}-b\right)=1 \Longleftrightarrow b=\mathbf{w}^{T} \mathbf{x}_{i}-y_{i} $$
+
+Note that $y_{i}^{-1}=y_{i}$ since $y_{i}=\pm 1y_{i}=\pm 1$. 
+
+## Kernel trick
+
+Kernel methods aid with classifying non-linear functions and decision boundaries. The concept is to use a mapping function to project nonlinear combinations of the original features onto a higher-dimensional space, where the data becomes linearly separable.
+
+<p align="center">
+![](C:/Users/onef0/Desktop/UU/Independent Projects/SVM from Scratch/SVM from Scratch/Images/Kernel_Trick.PNG){height=350px}
+</p>
+
+<p align="center">
+Image credit to [Gregory Gunderson](https://gregorygundersen.com/blog/2019/12/10/kernel-trick/).
+</p>
+
+The training data can be transformed into a higher-dimensional feature space using the above method, and a linear SVM can be trained to classify the data in this new feature space. After that, the new data may be processed using the mapping function and put into the classification model. However, this strategy is computationally quite expensive, so we utilize the kernel trick. 
+
+The kernel trick is used to convert dot product of support vectors to the dot product of mapping function. If a function can be written as an inner product of a mapping function, we just need to know that function rather than the mapping function. This is where kernel functions come into play.
+
+The kernel function is a function that can be used to express the mapping function's dot product (kernel method). It can be formulated as follows: 
+
+$$ K(x_i, x_j) = \phi(x_i) \cdot \phi (x_j)$$
+
+Kernel function reduces the complexity of finding the mapping function and defines the inner product in the transformed space. Below are some commonly used kernel functions:
+
+* Polynomial kernel
+* Gaussian kernel
+* Radial basis function kernel
+* Sigmoid kernel 
+
+----- 
+
+# Conclusion 
+
+So, in this document, we went over the theory of linearly seperable SVMs and also coded 5 algorithms for a linearly seperable SVM based off of different formulations. Then, we discussed the theory behind non-linear SVMs and how the kernel trick works. 
+
+-----
+
+# References
+
+* Shalev-Shwartz, S., Singer, Y., Srebro, N., & Cotter, A. (2011). Pegasos: Primal estimated sub-gradient solver for svm. *Mathematical programming*, 127(1), 3-30.
+
+-----
+
+# End of document
+
+-----
+
+```{r}
+sessionInfo()
+```
+
