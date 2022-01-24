@@ -1,0 +1,243 @@
+---
+title: "Perceptron from Scratch"
+author: "Kevin Patyk"
+date: "1/22/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = 'center')
+```
+
+# Introduction
+
+The perceptron algorithm is a supervised learning technique for binary classifiers in machine learning. A binary classifier is a function that can determine whether or not a vector of numbers representing an input belongs to a given class ($[0,1]$, $[yes, no]$, $[died, survived]$, etc.). It is a linear classifier, or a classification algorithm that uses a linear predictor function to combine a set of weights with a feature vector to create predictions for class assignment.
+
+<p align="center">
+![](D:\UU\Independent Projects\Perceptron from Scratch\Perceptron\Images\Linear.PNG){height=350px}
+</p>
+
+The perceptron consists of 4 parts:
+
+* Input values or One input layer
+* Weights and Bias
+* Net sum
+* Activation function
+
+The activation function defines the output of a neuron/node given an input or set of inputs. 
+
+<p align="center">
+![](D:\UU\Independent Projects\Perceptron from Scratch\Perceptron\Images\Perceptron.PNG){height=350px}
+</p>
+
+The perceptron works in these simples steps:
+
+1. All the inputs $x$ are multiplied with their weights $w$. 
+
+<p align="center">
+![](D:\UU\Independent Projects\Perceptron from Scratch\Perceptron\Images\Perceptron_2.PNG){height=350px}
+</p>
+
+2. Add all the multiplied values and call them Weighted Sum.
+
+3. Apply that weighted sum to the correct Activation Function.
+
+**For example**: Unit Step Activation Function
+
+<p align="center">
+![](D:\UU\Independent Projects\Perceptron from Scratch\Perceptron\Images\Activation_Function.PNG){height=350px}
+</p>
+
+In perceptron, the weights ($w$) shows the strength of the particular node and the bias value ($b$) allows you to shift the activation function curve up or down. The activation function is used to map the input between the required values like $[0,1]$ or $[-1, 1]$.
+
+So, essentially perceptron takes an input, aggregates it (weighted sum) and returns $1$ only if the aggregated sum is more than some threshold and returns $0$ otherwise.
+
+-----
+
+# Perceptron calculations
+
+Perceptron is a linear model with a linear function:
+
+$$ f(w,b) = w^Tx + b$$
+
+After this linear model, we apply the activation function. In the simplest case, we apply the unit step activation function:
+
+$$
+f(x)=\left\{\begin{array}{l}
+0 \text { if } 0>x \\
+1 \text { if } x \geq 0
+\end{array}\right.
+$$
+
+This is all we need to model the output. The entire output is first applying the linear function and then applying the activation function: 
+
+$$ \hat{y} = g(f(w,b)) = g(w^tx+b)$$
+
+For this, we have to finds the weights $w$ and the bias $b$ using simple update rules. 
+
+The perceptron update rules are:
+
+$$\text {For each training sample } x_i:$$
+
+$$ w = w+\Delta w$$
+This is the new $w$ is equal to the old $w$ plus the delta weight $\Delta w$.
+
+The delta weight $\Delta w$ is defined as:
+
+$$ \Delta w = \alpha \cdot (y_i-\hat{y}_i) \cdot x_i$$
+
+The delta weight $\Delta w$ is equal to $\alpha$ multiplied by the (actual label minus the predicted label) times the training sample $x_i$.
+
+Here $\alpha$ is the learning rate between $[0,1]$.
+
+So what does this update rule mean? There are 4 possible outcomes in the case of binary classification. 
+
+1. The actual label ($y$) is $1$ and the predicted label ($\hat{y}$) is $1$. The difference ($y_i-\hat{y}_i$) is 0. This means the observation is correctly classified. In this situation, we have no change for the weights.
+
+2. The actual label ($y$) is $0$ and the predicted label ($\hat{y}$) is $0$. The difference ($y_i-\hat{y}_i$) is 0. This means the observation is correctly classified. In this situation, we have no change for the weights.
+
+3. The actual label ($y$) is $1$ and the predicted label ($\hat{y}$) is $0$. The difference ($y_i-\hat{y}_i$) is 1. This means the observation is misclassified. In this situation, our weights are too low and they should be increased. 
+
+4. The actual label ($y$) is $0$ and the predicted label ($\hat{y}$) is $1$. The difference ($y_i-\hat{y}_i$) is -1. This means the observation is misclassified. In this situation, our weights are too high and they should be decreased. 
+
+So, the weights $w$ are pushed towards the positive or negative class in the case of a misclassification. 
+
+We will perform this update rule for a set number of iterations or other stopping criterion is reached.
+
+-----
+
+# Coding the algorithm
+
+First we will load the libraries that we will use.
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+Then, let us make a linearly separable dataset that we can use the test the algorithm.
+
+For this, we will be using the `iris` dataset, but removing one of the classes so only 2 remain. This dataset will also be provided in the `Data` folder. For the sake of simplicity, we will also only use 2 predictors, which are `Sepal.Length` and `Petal.Length`.
+```{r}
+#loading the iris data and making it binary
+df <- iris[iris$Species != "virginica", ]
+#selecting the x variables
+x <- df[, c("Sepal.Length", "Petal.Length")]
+#selecting the outcome variable
+y <- as.character(df$Species)
+#plotting 
+ggplot(df, aes(x = Sepal.Length, y = Petal.Length)) + 
+        geom_point(aes(colour = Species, shape = Species), size = 3) +
+        xlab("Sepal Length") + 
+        ylab("Petal Length") + 
+        ggtitle("Species vs Sepal and Petal Lengths")
+```
+
+As we can see, the two classes are linearly separable. 
+
+Now we need to change the labels of the outcome variable from `setosa` and `versicolor` to -1 and 1. 
+```{r}
+#converting the labels to 0 and 1
+y <- ifelse(y == "setosa", 0, 1)
+#inspecting the predictors
+head(x)
+#inspecting the outcome
+table(y)
+```
+
+Now it is time to code the function.
+```{r}
+perceptron <- function(X, y, alpha, n_iter){
+  
+  #defining the learning rate
+  alpha <- alpha
+  #defining the number of iterations
+  n_iter <- n_iter
+  
+  #initializing the weights
+  w <- rep(0, ncol(x) + 1)
+  #converting x to a matrix
+  X <- as.matrix(X)
+  
+  #loop over the number of iterations
+  for(i in 1:n_iter){
+    
+    #loop through the training data
+    for(j in 1:length(y)){
+      
+      #predicting the binary label according to the Heaviside (unit step) activation function 
+      z <- sum(w[2:length(w)] * X[j, ]) + w[1]
+      if(z >= 0){
+        y_pred <- 1
+      } else{
+        y_pred <- 0
+      }
+      
+      #now updating the weights; the formula doesn't do anything if the predicted value is correct
+      dw <- alpha * (y[j] - y_pred) * c(1, X[j, ])
+      w <- w + dw
+      
+    }
+  }
+  
+  #returning the weights
+  return(w)
+}
+```
+
+Let us now see if the function works as intended and make predictions.
+```{r}
+#running our algorithm
+weights <- perceptron(X = x, y = y, alpha = 0.01, n_iter = 5000)
+
+#defining the prediction function
+pred <- function(X, w){
+  #adding an intercept to 
+  X$Intercept <- 1
+  #rearranging so intercept comes first and making into a matrix 
+  X <- as.matrix(X[, c(ncol(X), 1:(ncol(X)-1))])
+  #making predictions 
+  pred <- X %*% w
+  #changing the labels
+  pred_label <- ifelse(pred >= 0, 1, 0)
+  
+  #returning the predicted values
+  return(pred_label)
+}
+```
+
+Now lets make predictions and double check if the algorithm gives the correct labels.
+```{r}
+#making predictions
+pred_perc <- pred(X = x, w = weights)
+#making a table of our predictions using the algorithm
+table(pred_perc)
+#making a table of our actual y
+table(y)
+```
+
+As we can see, they are exactly the same. Thus, our perceptron algorithm from scratch has successfully classified the data with 100% accuracy. 
+
+Now let's plot the predicted classes, the same as we did before using `ggplot` with the actual classes.
+```{r}
+x %>%
+  mutate(pred_class = as.factor(pred_perc)) %>% 
+  ggplot(aes(x = Sepal.Length, y = Petal.Length)) + 
+        geom_point(aes(colour = pred_class, shape = pred_class), size = 3) +
+        xlab("Sepal Length") + 
+        ylab("Petal Length") + 
+        ggtitle("Species vs Sepal and Petal Lengths")
+```
+
+We have successfully coded perceptron from scratch.
+
+-----
+
+# End of document
+
+-----
+
+```{r}
+sessionInfo()
+```
+
+
+
