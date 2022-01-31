@@ -219,7 +219,7 @@ f(x)=\left\{\begin{array}{l}
 \end{array}\right.
 \]</span></p>
 <p>This is all we need to model the output. The entire output is first applying the linear function and then applying the activation function:</p>
-<p><span class="math display">\[ \hat{y} = g(f(w,b)) = g(w^tx+b)\]</span></p>
+<p><span class="math display">\[ \hat{y} = g(f(w,b)) = g(w^Tx+b)\]</span></p>
 <p>For this, we have to finds the weights <span class="math inline">\(w\)</span> and the bias <span class="math inline">\(b\)</span> using simple update rules.</p>
 <p>The perceptron update rules are:</p>
 <p><span class="math display">\[\text {For each training sample } x_i:\]</span></p>
