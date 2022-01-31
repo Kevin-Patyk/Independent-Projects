@@ -71,7 +71,7 @@ $$
 
 This is all we need to model the output. The entire output is first applying the linear function and then applying the activation function: 
 
-$$ \hat{y} = g(f(w,b)) = g(w^tx+b)$$
+$$ \hat{y} = g(f(w,b)) = g(w^Tx+b)$$
 
 For this, we have to finds the weights $w$ and the bias $b$ using simple update rules. 
 
