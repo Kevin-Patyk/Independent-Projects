@@ -221,7 +221,7 @@ curve(dnorm(x, mean = -2, sd = sqrt(.5)), add = TRUE, type = &quot;l&quot;, lwd 
 <h1>Coding the algorithm</h1>
 <p>First, let’s load the packages we will be using.</p>
 <pre class="r"><code>library(tidyverse)</code></pre>
-<p>Prior to coding the algorithm, let’s create a dataset that will be used to test it. For this, we will modify the built-in <code>iris</code> dataset. For the outcome, we will only be using <code>setosa</code> and <code>versicolor</code>. To keep it simple, from <span class="math inline">\(x\)</span> variables, we will only be using <code>Sepal.Length</code> and <code>Petal.Length</code>.</p>
+<p>Prior to coding the algorithm, let’s create a dataset that will be used to test it. For this, we will modify the built-in <code>iris</code> dataset. For the outcome, we will only be using <code>setosa</code> and <code>versicolor</code>. To keep it simple, from <span class="math inline">\(x\)</span> variables, we will only be using <code>Sepal.Length</code> and <code>Petal.Length</code>. All of the datasets used here will be in the <code>Data</code> folder.</p>
 <pre class="r"><code>#loading the iris data and making it binary
 df &lt;- iris[iris$Species != &quot;virginica&quot;, ]
 #selecting the x variables
