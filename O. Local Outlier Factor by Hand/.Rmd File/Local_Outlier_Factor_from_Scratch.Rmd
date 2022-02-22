@@ -1,0 +1,245 @@
+---
+title: "Local Outlier Factor from Scratch"
+author: "Kevin Patyk"
+date: "2/18/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.align = 'center')
+```
+
+# Introduction
+
+Local Outlier Factor (LOF) is an unsupervised algorithm that is used in outlier/anomaly detection. The LOF algorithm finds anomalous data points by measuring the local deviation of a given data point with respect to its neighbors. By comparing the local density of an object to the local densities of its neighbors, one can identify regions of similar density, and points that have a substantially lower density than their neighbors are considered outliers. 
+
+Outlier detection methods can be distribution-based,depth-based,clustering-based and density-based. LOF allows us to define outliers by doing density-based scoring. It is similar to the KNN algorithm. The difference is that we’re trying to find observations that are close together in KNN, but we’re trying to find observations that are not alike in LOF.
+
+Below is an image that displays the basic idea of LOF. It is comparing the local density of a point with the densities of its neighbors. The point $A$ has a much lower density than its neighbors.
+
+<p align="center">
+![](D:\UU\Independent Projects\Local Outlier Factor\LOF From Scratch\Images\LOF_Picture.PNG){height=350px}
+</p>
+
+Local outlier factor algorithm can be divided into four parts and we will explain these sequentially prior to coding the algorithm:
+
+* $K$-distance and $K$-neighbors
+* Reachability distance (RD)
+* Local reachability density (LRD)
+* Local Outlier Factor (LOF)
+
+## $K$-distance and $K$-neighbors
+
+$K$-distance is the distance between the point, and it’s $K$th nearest neighbor. $K$-neighbors refers to the hyperparameter $K$. The $K$ value here determines how which neighbors we are looking at. For example, if $K = 3$, the distance to the nearest third neighbor is looked at. So, if we have points [$A, B, C, D, E$] and $E$ is the third furthest from $A$, we would look at that distance. Note that the set of the $K$ nearest neighbors includes all objects at this distance, which can in the case of a "tie" be more than $K$ objects.
+
+<p align="center">
+![](D:\UU\Independent Projects\Local Outlier Factor\LOF From Scratch\Images\K_Neighbors.PNG){height=350px}
+</p>
+
+## Reachability distance (RD)
+
+Reachability distance (RD) is defined as the maximum of $K$-distance of $X_j$ and the distance between $X_i$ and $X_j$. The distance measure is problem-specific (Euclidean, Manhattan, etc.). This distance measure is simply the maximum of the distance of two points and the k-distance of the second point. This is just a “smoothing factor. For the sake of simplicity, just think of it is the distance needed to travel from particular point to its neighbor point. 
+
+*Another Explanation*: This distance measure is simply the maximum of the distance between two points and the $K$-distance of the second point.
+
+Considering the distance from point $A$ to $B$, the formula for RD is: 
+
+$$ \text{reachability distance}_k(A,B)=max({\text{k-distance}(B),d(A,B)})$$ 
+
+## Local reachability density (LRD)
+
+The reachability distance (RD) is then used to calculate still another concept — the local reachability density (LRD). To get the LRD for point $A$, we will first calculate the RD of $A$ to all its $K$-nearest neighbors and take the average of that number. The LRD is then simply the inverse of that average. Remember that we are talking about densities and, therefore, the longer the distance to the next neighbors, the sparser the area the respective point is located in. In other words, the less dense it is. 
+
+The formula for LRD is: 
+
+$$
+\operatorname{LRD}_{k}(A)=\frac{1}{\sum_{X j \in N_{k}(A)} \frac{\operatorname{RD}(A, X j)}{\left\|N_{k}(A)\right\|}}
+$$
+
+Where $RD(A, X_j)$ is the reachability distance of point $A$ and $X_j$ and $N_k(A)$ is the amount of $K$ neighbors. 
+
+By intuition, the LRD tells how far we have to travel from our point to reach the next point or cluster of points. The lower it is, the less dense it is and the longer we have to travel to the next point or cluster of points. Low values of LRD implies that the closest cluster is far from the point.
+
+A helpful image is below:
+
+<p align="center">
+![](D:\UU\Independent Projects\Local Outlier Factor\LOF From Scratch\Images\LRD_Picture.PNG){height=350px}
+</p>
+
+## Local outlier factor (LOF)
+
+The LRDs are then compared with those of the neighbors using the local outlier factor (LOF). The formula for LOF is: 
+
+$$
+L O F_{k}(A)=\frac{\sum_{X j \in N_{k}(A)} L R D_{k}(X j)}{\left\|N_{k}(A)\right\|} \times \frac{1}{L R D_{k}(A)}
+$$
+
+Where $N_k(A)$ is the amount of $K$ neighbors and `lrd` is the local reachability density.  
+
+This is the average LRD of the neighbors divided by the points's own LRD. In this formula, The LRD of each point will then be compared to the LRD of their $K$ neighbors. More specifically, $K$ ratios of the LRD of each point to its neighboring points will be calculated and averaged. The LOF is basically the average ratio of the LRDs of the neighbors of $A$ to the LRD of $A$. 
+
+A value of approximately 1 indicates that the point is comparable to its neighbors (and thus not an outlier). A value below $1$ indicates a denser region (which would be an inlier), while values significantly larger than $1$ indicate outliers.
+
+In conclusion, the LOF of a point tells the density of this point compared to the density of its neighbors. If the density of a point is much smaller than the densities of its neighbors ($LOF ≫ 1$), the point is far from dense areas and an outlier.
+
+In short:
+
+* $LOF(k) ~ 1$ means *similar* density as neighbors
+* $LOF(k) < 1$ means *higher* density than neighbors (inlier)
+* $LOF(k) > 1$ means *lower* density than neighbors (outlier)
+
+-----
+
+# Coding the algorithm 
+
+Now that we know the basics of LOF, we can code the algorithm ourselves. First, let's create a data set of points that we will use to for our calculations. 
+```{r}
+#setting the X and Y values
+X <- c(0, 0, 1, 3)
+Y <- c(0, 1, 1, 0)
+
+#making into a data frame
+df <- data.frame(X, Y)
+
+#setting the row names
+rownames(df) <- c("Point A", "Point B", "Point C", "Point D")
+
+#looking at the first 6 observations
+head(df)
+```
+
+Using this data, we will calculate the LOF for each point and find the top 2 outliers. Use $K=2$ and Manhattan Distance as the distance function.
+
+The algorithm for LOF is:
+
+* Distance Calculation
+* $K$th-Nearest Neighbor Distance Calculation
+* $K$-Neighborhood Calculation
+* Local Reachability Density (LRD) Calculation
+* Local Outlier Factor (LOF) Calculation
+
+## Distance calculation 
+
+Multiple distance functions exist out there, but as I specified in the problem above, we are going to be using Manhattan distance to allow easy calculations by hand and for the sake of simplicity. We will calculate the distance between all of the points. The formula for Manhattan distance is: 
+
+$$ \text{Manhattan Distance }= \sum{|p_i-q_i|}$$
+
+We could do this using the built-in `dist()` function.
+```{r}
+#defining the manhattan distance function as a reference
+manhattan_distance <- function(a, b){
+  sum(abs(b - a))  
+}
+
+#using the dist() function
+(dist <- dist(df, method = "manhattan"))
+
+#making the dist object into a vector to make it easier to use later
+dist_vec <- as.vector(dist)
+```
+
+## $K$th-nearest neighbor distance calculation
+
+As prescribed in the problem, we are going to use $K=2$. This means we need to find the second nearest neighbor of each point. That is, the second closest point to each.
+
+In this case, the second nearest neighbors of the points are: 
+
+* $K$th Nearest Neighbor($A$) = $C$
+* $K$th Nearest Neighbor($B$) = $C$ ($A$ and $C$ are same distance, choose either)
+* $K$th Nearest Neighbor($C$) = $A$
+* $K$th Nearest Neighbor($D$) = $C$ ($C$ and $A$ are same distance, choose either)
+
+Now calculate the distance of each point to it’s $K$th, in our case second, nearest neighbor.
+```{r}
+(dist_kth_NN_a <- manhattan_distance(df[1, ], df[3, ]))
+(dist_kth_NN_b <- manhattan_distance(df[2, ], df[3, ]))
+(dist_kth_NN_c <- manhattan_distance(df[3, ], df[1, ]))
+(dist_kth_NN_d <- manhattan_distance(df[4, ], df[3, ]))
+```
+
+## $K$-neighborhood calculation
+
+Find the number $K$ nearest neighbors of each value. This is simple as we set $K = 2$, so the is is 2. 
+
+The neighborhoods are:
+
+* $K$-neighborhood ($A$) = ${B,C}$ , $||N2(A)||$ = 2
+* $K$-neighborhood ($B$) = ${A,C}$, $||N2(B)||$ = 2
+* $K$-neighborhood ($C$)= ${B,A}$, $||N2(C)||$ = 2
+* $K$-neighborhood ($D$) = ${A,C}$, $||N2(D)||$ = 2
+```{r}
+knear_a <- 2
+knear_b <- 2
+knear_c <- 2
+knear_d <- 2
+```
+
+## LRD calculation
+
+The distance between each pair of points, $K$-distance, and $K$-neighborhood will be used to calculate the LRD. As a reminder, the formula for LRD is: 
+
+$$
+\operatorname{LRD}_{k}(A)=\frac{1}{\sum_{X j \in N_{k}(A)} \frac{\operatorname{RD}(A, X j)}{\left\|N_{k}(A)\right\|}}
+$$
+
+Where $RD(A, X_j)$ is the reachability distance (RD) of point $A$ and $X_j$ and $N_k(A)$ is the amount of $K$ neighbors. In other words, RD is he max value of the Kth, 2nd in our case, nearest neighbor of the point and the Manhattan distance of between the point and it’s neighbor, two things we already calculated.
+```{r}
+(lrd_a <- 1/((max(dist_kth_NN_b, manhattan_distance(df[1, ], df[2, ])) + max(dist_kth_NN_c, manhattan_distance(df[1, ], df[3, ])))/knear_a))
+(lrd_b <- 1/((max(dist_kth_NN_a, manhattan_distance(df[2, ], df[1, ])) + max(dist_kth_NN_c, manhattan_distance(df[2, ], df[3, ])))/knear_b))
+(lrd_c <- 1/((max(dist_kth_NN_a, manhattan_distance(df[3, ], df[1, ])) + max(dist_kth_NN_b, manhattan_distance(df[3, ], df[2, ])))/knear_c))
+(lrd_d <- 1/((max(dist_kth_NN_a, manhattan_distance(df[4, ], df[1, ])) + max(dist_kth_NN_c, manhattan_distance(df[4, ], df[3, ])))/knear_d))
+```
+
+## LOF calculations
+
+Now that we have calculated the LRDs, we can finally calculate the LOF for each of the points. As a reminder, the formula for the LOF is: 
+
+$$
+L O F_{k}(A)=\frac{\sum_{X j \in N_{k}(A)} L R D_{k}(X j)}{\left\|N_{k}(A)\right\|} \times \frac{1}{L R D_{k}(A)}
+$$
+
+Where $N_k(A)$ is the amount of $K$ neighbors and `lrd` is the local reachability density.
+```{r}
+#setting up the calculations
+lof_a <- (lrd_b + lrd_c)/ (knear_a * lrd_a)
+lof_b <- (lrd_a + lrd_c)/ (knear_b * lrd_b)
+lof_c <- (lrd_b + lrd_a)/ (knear_c * lrd_c)
+lof_d <- (lrd_a + lrd_c)/ (knear_d * lrd_d)
+
+#displaying the results
+data.frame("Points" = rownames(df), "LOF_Value" = round(c(lof_a, lof_b, lof_c, lof_d), digits = 2))
+```
+
+So, what does this mean? Well, it depends on how your data looks. Do you have a tight, clean, and uniform dataset? Then a LOF value of $1.05$ could be an outlier. Do you have a sparse dataset, varying in density, with many local fluctuations specific to that local cluster? Then a LOF value of $2$ could still be an inlier. So, it depends. There are many different variations/ additions to this base algorithm, which will be briefly shown in the next section. 
+
+Finally, a helpful image below which visualizes a complete LOF:
+
+<p align="center">
+![](D:\UU\Independent Projects\Local Outlier Factor\LOF From Scratch\Images\LOF_Complete.PNG){height=550px}
+</p>
+
+-----
+
+# Conclusion
+
+LOF values identify an outlier based on the local neighborhood. LOF will identify an outlier considering the density of the neighborhood and performs well when the density of the data is not the same throughout the dataset. 
+
+LOF has the advantage of being able to discover outliers in a data set that would not be outliers in another part of the data set because of the local approach. For example, an outlier is a point that is "close" to a very dense cluster, but a point within a sparse cluster may have similar distances to its neighbors.
+
+One drawback of LOF is that the results are quotient-values, which are difficult to interpret. A point with a value of $1$ or less is clearly an inlier, but there is no obvious rule for whether a point is an outlier. A value of $1.1$ may already be an outlier in one data set, but a value of $2$ may still be an inlier in another dataset with a different structure. Due to the method's locality, these disparities might also arise inside a dataset. The various LOF extensions that aim to improve on LOF are:
+
+* Feature Bagging for Outlier Detection
+* Local Outlier Probability
+* Interpreting and Unifying Outlier Scores
+* On Evaluation of Outlier Rankings and Outlier Scores
+
+-----
+
+# End of document
+
+-----
+
+```{r}
+sessionInfo()
+```
+
