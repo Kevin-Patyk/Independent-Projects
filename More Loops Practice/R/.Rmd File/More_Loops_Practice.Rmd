@@ -1,0 +1,380 @@
+---
+title: "More Loops Practice"
+author: "Kevin Patyk"
+date: '2022-09-16'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 1: Print First 10 natural numbers using while loop
+
+```{r}
+i = 1
+while( i <= 10){
+  print(i)
+  i = i + 1
+}
+```
+
+## Exercise 2: Print the following pattern
+
+* `1`
+* `1 2`
+* `1 2 3`
+* `1 2 3 4`
+* `1 2 3 4 5`
+
+```{r}
+stor = c()
+for(i in 1:5){
+  for(j in 1:i){
+    stor = c(stor, j)
+  }
+  print(stor)
+  stor = c()
+}
+```
+
+## Exercise 3: Calculate the sum of all numbers from 1 to a given number
+
+```{r}
+N = 10
+sum = 0
+for(i in 1:N){
+  sum = sum + i
+}
+print(sum)
+```
+
+## Exercise 4: Write a program to print multiplication table of a given number
+
+```{r}
+num = 3
+stor = 0
+for(i in 1:10){
+  stor = stor + num
+  print(stor)
+}
+```
+
+Or:
+
+```{r}
+num = 2
+for(i in 1:10){
+  product = num * i
+  print(product)
+}
+```
+
+## Exercise 5: Display numbers from a list using loop
+
+Write a program to display only those numbers from a list that satisfy the following conditions:
+
+* The number must be divisible by five
+* If the number is greater than 150, then skip it and move to the next number
+* If the number is greater than 500, then stop the loop
+
+Given:
+
+`numbers = [12, 75, 150, 180, 145, 525, 50]`
+
+Expected output:
+
+`75`
+`150`
+`145`
+
+```{r}
+numbers = c(12,75,150,180,145,525,50)
+for(i in numbers){
+  if(i > 500){
+    break()
+  } else if(i > 150 | i %% 5 != 0){
+    next()
+  } else{
+    print(i)
+  }
+}
+```
+
+## Exercise 6:
+
+Write a program to count the total number of digits in a number using a while loop.
+
+For example, the number is 75869, so the output should be 5.
+
+```{r}
+number = 75869
+counter = 0
+while(number != 0){
+  number = floor(number / 10)
+  counter = counter + 1
+}
+
+print(counter)
+```
+
+## Exercise 7: Print the following pattern
+
+Write a program to use for loop to print the following reverse number pattern:
+
+* `1 2 3 4 5`
+* `1 2 3 4`
+* `1 2 3`
+* `1 2`
+* `1`
+
+```{r}
+stor = c()
+k = 6
+for(i in 1:5){
+  for(j in 5:(k-i)){
+    stor = c(stor, j)
+  }
+  print(stor)
+  stor = c()
+}
+```
+
+## Exercise 8: Print list in reverse order using a loop
+
+* Given:
+
+`list1 = [10, 20, 30, 40, 50]`
+
+```{r}
+list1 = c(10, 20, 30, 40, 50)
+newlist = c()
+for(i in length(list1):1){
+  newlist = c(newlist, list1[i])
+}
+
+print(newlist)
+```
+
+## Exercise 9: Display numbers from -10 to -1 using for loop
+
+```{r}
+stor <- c()
+for(i in -10:-1){
+  stor <- c(stor, i)
+}
+print(stor)
+```
+
+## Exercise 10: Use else block to display a message “Done” after successful execution of for loop
+
+```{r}
+n = 5
+for(i in 1:n){
+  print(i)
+} 
+if(i == n){
+  print("Done")
+}
+```
+
+## Exercise 11: Write a program to display all prime numbers within a range
+
+**Note**: A Prime Number is a number that cannot be made by multiplying other whole numbers. A prime number is a natural number greater than 1 that is not a product of two smaller natural numbers
+
+Examples:
+* 6 is not a prime mumber because it can be made by 2×3 = 6
+* 37 is a prime number because no other whole numbers multiply together to make it.
+
+Given:
+
+* `start = 25`
+* `end = 50`
+
+```{r}
+n = 50
+    for (j in 2:n) {
+      f = 1
+      i = 2
+      n = j
+      while (i <= n / 2) {
+        if (n %% i == 0) {
+          f = 0
+          break
+        }
+        i = i + 1
+      }
+      if (f == 1) {
+        print(paste("Number is prime :", n))
+      }
+    }
+```
+
+## Exercise 12: Display Fibonacci series up to 10 terms
+
+The Fibonacci Sequence is a series of numbers. The next number is found by adding up the two numbers before it. The first two numbers are 0 and 1.
+
+For example, 0, 1, 1, 2, 3, 5, 8, 13, 21. The next number in this series above is 13+21 = 34.
+
+Expected output: 
+
+* `0  1  1  2  3  5  8  13  21  34`
+
+```{r}
+N = 10
+n1 = 0
+n2 = 1
+for(i in 1:N){
+  print(n1)
+  result = n1 + n2
+  n1 = n2
+  n2 = result
+}
+```
+
+## Exercise 13: Write a program to use the loop to find the factorial of a given number.
+
+The factorial (symbol: $!$) means to multiply all whole numbers from the chosen number down to 1.
+
+For example: calculate the factorial of 5
+
+* `5! = 5 × 4 × 3 × 2 × 1 = 120`
+
+Expected Output:
+
+* `120`
+
+```{r}
+N = 5
+if(N < 0){
+  print("Factorial does not exist for negative numbers")
+} else if(N == 0){
+  print("The factorial of 0 is 1")
+} else{
+  for(i in (N-1):1){
+    result= N * i
+    N = result
+  }
+}
+
+print(result)
+```
+
+## Exercise 14: Reverse a given integer number
+
+Given:
+
+* `76542`
+
+Output:
+
+* `24567`
+
+```{r}
+num = 76542
+num2 = as.numeric(strsplit(as.character(num), "")[[1]])
+list1 = c()
+for(i in length(num2):1){
+  list1 = c(list1, num2[i])
+}
+print(as.numeric(paste(list1, collapse = "")))
+```
+
+## Exercise 15: Use a loop to display elements from a given list present at odd index positions
+
+Given:
+
+* `my_list = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]`
+
+Expected output:
+
+* `20 40 60 80 100`
+
+```{r}
+my_list = c(10, 20, 30, 40, 50, 60, 70, 80, 90, 100)
+# Making a vector of the odd indices
+list_ind = my_list[seq(0,length(my_list),2)]
+
+# Printing the odd indices
+for(i in list_ind){
+  print(i)
+}
+```
+
+## Exercise 16: Calculate the cube of all numbers from 1 to a given number
+
+Write a program to get the cube of all numbers from 1 to a given number
+
+Given:
+
+* `input_number = 6`
+
+```{r}
+input_number = 6
+for(i in 1:6){
+  print(i^3)
+}
+```
+
+## Exercise 17: Find the sum of the series up to n terms
+
+Write a program to calculate the sum of series up to n term. For example, if n = 5 the series will become 2 + 22 + 222 + 2222 + 22222 = 24690
+
+Given:
+
+* `n = 5`
+
+Expected output:
+
+* `24690`
+
+```{r}
+n = 5
+# First number of the sequence
+start = 2
+# Storage for summation
+sum_seq = 0
+
+for(i in 1:n){
+  # Adding new number to previous number
+  sum_seq = sum_seq + start
+  start = start * 10 + 2
+}
+
+print(sum_seq)
+```
+
+## Exercise 18: Print the following pattern
+
+Write a program to print the following start pattern using the for loop:
+
+* `* `
+* `* * `
+* `* * * `
+* `* * * * `
+* `* * * * * `
+* `* * * * `
+* `* * * `
+* `* * `
+* `*`
+
+```{r}
+rows = 5
+stor = c()
+for(i in 1:(rows-1)){
+  for(j in 1:i){
+    stor = c(stor, "*")
+  }
+  print(stor)
+  stor = c()
+}
+
+for(i in rows:1){
+  for(j in 1:i){
+    stor = c(stor, "*")
+  }
+  print(stor)
+  stor = c()
+}
+```
+
