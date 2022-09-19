@@ -1,0 +1,495 @@
+---
+title: "Code Chef Practice"
+author: "Kevin Patyk"
+date: '2022-09-14'
+output: html_document
+---
+
+# Code Chef Practice Problems
+
+## Number 1: 
+
+Chef is not feeling well today. He measured his body temperature using a thermometer and it came out to be X°F.
+
+A person is said to have fever if his body temperature is strictly greater than 98°F.
+
+Determine if Chef has fever or not.
+
+```{r}
+# Making the function
+fev = function(temp){
+  if(temp <= 98){
+    result = "No"
+  } else{
+    result = "Yes"
+  }
+  return(result)  
+}
+
+# Testing the function
+print(fev(100))
+print(fev(97))
+```
+
+## Number 2:
+
+Uttu broke his phone. He can get it repaired by spending X rupees or he can buy a new phone by spending Y rupees. Uttu wants to spend as little money as possible. Find out if it is better to get the phone repaired or to buy a new phone.
+
+```{r}
+# Making the function
+phone = function(X, Y){
+  if(X == Y){
+    result = "Any"
+  } else if(X > Y){
+    result = "New Phone"
+  } else{
+    result = "Repaired"
+  }
+  return(result)
+}
+
+# Testing the function
+print(phone(100, 200))
+print(phone(200, 200))
+```
+
+## Number 3
+
+Alice is driving from her home to her office which is A kilometers away and will take her X hours to reach.
+Bob is driving from his home to his office which is B kilometers away and will take him Y hours to reach.
+
+Determine who is driving faster, else, if they are both driving at the same speed print EQUAL.
+```{r}
+# Making the function
+dist <- function(A, X, B, Y){
+  if(A/X > B/Y){
+    speed = "Alice"
+  } else if(B/Y > A/X){
+    speed = "Bob"
+  } else{
+    speed = "Equal"
+  }
+  return(speed)
+}
+
+# Testing the function
+print(dist(20, 6, 20, 5))
+print(dist(10, 3, 20, 6))
+```
+
+## Number 4:
+
+Write a program that accepts sets of three numbers, and prints the second-maximum number among the three.
+
+```{r}
+# Making the function
+secmax = function(one, two, three){
+  numbers = c(one, two, three)
+  numbers = sort(numbers)
+  return(numbers[2])
+}
+
+# Testing the function
+print(secmax(1,2,3))
+print(secmax(10,6,3))
+```
+
+## Number 5
+
+Alice and Bob are very good friends and they always distribute all the eatables equally among themselves.
+
+Alice has A chocolates and Bob has B chocolates. Determine whether Alice and Bob can distribute all the chocolates equally among themselves.
+
+Note that:
+
+* It is not allowed to break a chocolate into more than one piece.
+* No chocolate shall be left in the distribution.
+
+```{r}
+# Making the function
+split = function(alice, bob){
+  if((alice + bob) %% 2 == 0)
+    result = "Yes"
+  else{
+    result = "No"
+  }
+  return(result)
+}
+
+# Testing the function
+print(split(2,1))
+print(split(2,2))
+```
+
+## Number 6:
+
+Alice, Bob and Charlie are bidding for an artifact at an auction.
+Alice bids A rupees, Bob bids B rupees, and Charlie bids C rupees (where A, B, and C are distinct).
+
+According to the rules of the auction, the person who bids the highest amount will win the auction.
+Determine who will win the auction.
+
+```{r}
+# Making the function
+bid = function(A, B, C){
+  if(A > B & A > C){
+    winner = "Alice"
+  } else if(B > A & B > C){
+    winner = "Bob"
+  } else{
+    winner = "Charlie"
+  }
+  return(winner)
+}
+
+# Testing the function
+print(bid(100, 50, 25))
+print(bid(50, 100, 25))
+print(bid(25, 50, 100))
+```
+
+## Number 7:
+
+Finally, after purchasing a water cooler during the April long challenge, Chef noticed that his water cooler requires 2 liters of water to cool for one hour.
+
+How much water (in liters) would be required by the cooler to cool for N hours?
+
+```{r}
+# Making the function
+water = function(hours){
+  result = 2 * hours
+  return(result)
+}
+
+# Testing the function
+print(water(2))
+print(water(4))
+```
+
+## Number 8:
+
+There were initially X million people in a town, out of which Y million people left the town and Z million people immigrated to this town.
+
+Determine the final population of town in millions.
+
+```{r}
+# Making the function
+pop = function(X, Y, Z){
+  final_pop = (X - Y) + Z
+  return(final_pop)
+}
+
+# Testing the function 
+print(pop(3,1,2))
+print(pop(2,2,2))
+print(pop(4,1,8))
+```
+
+## Number 9:
+
+Alice is playing Air Hockey with Bob. The first person to earn seven points wins the match. Currently, Alice's score is A and Bob's score is B.
+
+Charlie is eagerly waiting for his turn. Help Charlie by calculating the minimum number of points that will be further scored in the match before it ends.
+
+```{r}
+# Making the function
+hockey <- function(A, B){
+  points_A = 7 - A
+  points_B = 7 - B
+  return(min(points_A, points_B))
+}
+
+# Testing the function
+print(hockey(0,0))
+print(hockey(2,5))
+print(hockey(5,6))
+print(hockey(4,3))
+```
+
+## Number 10:
+
+## Number 10:
+
+On a certain train, Chef-the ticket collector, collects a fine of Rs. X if a passenger is travelling without a ticket. It is known that a passenger carries either a single ticket or no ticket.
+
+P passengers are travelling and they have a total of Q tickets. Help Chef calculate the total fine collected.
+
+* The first integer, X, is the fee in rupees.
+* The second integer, P, is the number of passengers on the train.
+* The third integer, Q, is the number of tickets Chef collected.
+
+```{r}
+# Making the function
+fine = function(X, P, Q){
+  missing_tix = P - Q
+  total_fine = X * missing_tix
+  return(total_fine)
+}
+
+# Testing the function
+print(fine(4,1,1))
+print(fine(2,10,7))
+print(fine(8,5,4))
+print(fine(9,7,0))
+```
+
+## Number 11:
+
+## Number 11:
+
+Alice buys a toy with a selling price of 100 rupees. There is a discount of X percent on the toy. Find the amount Alice needs to pay for it.
+
+```{r}
+# Making the function
+price = function(X, price){
+  discount = X/100
+  final_price = price - (discount * price)
+  return(final_price)
+}
+
+# Testing the function 
+print(price(5, 100))
+print(price(10, 100))
+print(price(10, 88))
+```
+
+## Number 12: 
+
+Write a program to find the remainder when an integer A is divided by an integer B.
+
+```{r}
+# Making the function
+rem = function(A, B){
+  remainder = A %% B
+  return(remainder)
+}
+
+# Testing the function 
+print(rem(1, 2))
+print(rem(100, 200))
+print(rem(40, 15))
+```
+
+## Number 13:
+
+Ezio can manipulate at most X number of guards with the Apple of Eden.
+
+Given that there are Y number of guards, predict if he can safely manipulate all of them.
+
+```{r}
+# Making the function
+mani = function(X, Y){
+  if(X %% Y == 0){
+    result = "Yes"
+  } else{
+    result = "No"
+  }
+  return(result)
+}
+
+# Testing the function
+print(mani(5,6))
+print(mani(6,6))
+print(mani(9,1))
+```
+
+## Number 14:
+
+You're given an integer N. Write a program to calculate the sum of all the digits of N.
+
+```{r}
+# Making the function
+sumdig = function(N){
+  digits = as.integer(strsplit(x = as.character(N), split = "")[[1]])
+  total = sum(digits)
+  return(total)
+}
+
+# Testing the function
+print(sumdig(12345))
+print(sumdig(31203))
+print(sumdig(2123))
+```
+
+## Number 15: 
+
+If given an integer N, write a program to obtain the sum of the first and last digits of this number.
+
+```{r}
+# Making the function
+fldig = function(N){
+  digits = as.integer(strsplit(x = as.character(N), split = "")[[1]])
+  total = digits[1] + digits[length(digits)]
+  return(total)
+}
+
+# Testing the function
+print(fldig(1234))
+print(fldig(124894))
+print(fldig(242323))
+```
+
+## Number 16:
+
+You are given that a mango weighs X kilograms and a truck weighs Y kilograms. You want to cross a bridge that can withstand a weight of Z kilograms.
+
+Find the maximum number of mangoes you can load in the truck so that you can cross the bridge safely.
+
+```{r}
+# Making the function
+mango = function(X,Y,Z){
+  result = floor((Z-Y)/X)
+  return(result)
+}
+
+# Testing the function
+print(mango(2,5,11))
+print(mango(4,10,20))
+print(mango(1,1,1))
+```
+
+## Number 17:
+
+Alice has a bucket of water initially having W litres of water in it. The maximum capacity of the bucket is X liters.
+
+Alice turned on the tap and the water starts flowing into the bucket at a rate of Y litres/hour. She left the tap running for exactly Z hours. Determine whether the bucket has been overflown, filled exactly, or is still left unfilled.
+
+```{r}
+# Making the function
+water = function(W,X,Y,Z){
+  fill = W + (Y * Z)
+  if(fill > X){
+    result = "overflown"
+  } else if(fill < X){
+    result = "unfilled"
+  } else if(fill == X){
+    result = "filled exactly"
+  }
+  return(result)
+}
+
+# Testing the function
+print(water(1,2,3,4))
+print(water(10,70,10,6))
+print(water(2,100,4,3))
+print(water(4,3,2,1))
+```
+
+## Number 18:
+
+Chef has finally got the chance of his lifetime to drive in an F1 tournament. But, there is one problem. Chef did not know about the 107% rule and now he is worried whether he will be allowed to race in the main event or not.
+
+Given the fastest finish time as X seconds and Chef's finish time as Y seconds, determine whether Chef will be allowed to race in the main event or not.
+
+Note that, Chef will only be allowed to race if his finish time is within 107% of the fastest finish time.
+
+```{r}
+# Making the function
+fone = function(X, Y){
+  time_limit = X * 1.07
+  if(Y <= time_limit){
+    result = "Yes"
+  } else if(Y > time_limit){
+    result = "No"
+  }
+  return(result)
+}
+
+# Testing the function
+print(fone(1,2))
+print(fone(15,16))
+print(fone(15,17))
+print(fone(100,107))
+```
+
+## Number 19:
+
+In the medieval age, there were 3 kingdoms A, B, and C. The army of these kingdom had $N_A$ , $N_B$, and $N_C$ soldiers respectively.
+
+You are given that an army with X soldiers can defeat an army with Y soldiers only if X > Y.
+
+An army is said to be dominant if it can defeat both the other armies combined. For example, kingdom C's army will be dominant only if $N_C$ > $N_A$ + $N_BN$ 
+
+Determine whether any of the armies is dominant or not.
+
+```{r}
+# Making the function
+dom = function(A,B,C){
+  if((A > B + C) | (B > A + C) | (C > A + B)){
+    result = "Yes"
+  } else{
+    result = "No"
+  }
+}
+
+# Testing the function
+print(dom(15,5,6))
+print(dom(12,13,16))
+print(dom(1,1,100))
+```
+
+## Number 20:
+
+Chef wants to gift C chocolates to Botswal on his birthday. However, he has only X chocolates with him. The cost of 1 chocolate is Y rupees.
+
+Find the minimum money in rupees Chef needs to spend so that he can gift C chocolates to Botswal.
+
+```{r}
+# Making the function
+gift = function(C,X,Y){
+  result = (C - X) * Y
+  return(result)
+}
+
+# Testing the function
+print(gift(7,5,5))
+print(gift(10,1,1))
+```
+
+## Number 21: 
+
+A single car can accommodate at most 4 people.
+
+N friends want to go to a restaurant for a party. Find the minimum number of cars required to accommodate all the friends.
+
+```{r}
+# Making the function
+cars = function(N){
+  result = ceiling(N/4)
+  return(result)
+}
+
+# Testing the function
+print(cars(4))
+print(cars(2))
+print(cars(7))
+print(cars(98))
+```
+
+## Number 22:
+
+Chef discovered that his secret recipe has been stolen. He immediately informs the police of the theft.
+
+It is known that the policeman and thief move on the number line. You are given that:
+
+* The initial location of the policeman on the number line is X and his speed is 2 units per second.
+* The initial location of the thief on the number line is Y and his speed is 1 unit per second.
+
+Find the minimum time (in seconds) in which the policeman can catch the thief. Note that, the policeman catches the thief as soon as their locations become equal and the thief will try to evade the policeman for as long as possible.
+
+```{r}
+# Making the function
+chase = function(X,Y){
+  if(X >= Y){
+    result = X - Y
+  } else{
+    result = Y - X
+  }
+  return(result)
+}
+
+# Testing the function
+print(chase(1, 3))
+print(chase(2, 1))
+print(chase(1, 1))
+```
